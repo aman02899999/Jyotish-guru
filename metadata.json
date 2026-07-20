@@ -1,0 +1,6 @@
+{
+  "name": "Adi Jyotish Gurus",
+  "description": "Premium Vedic astrology consultations, charts, and guided insights powered by Gemini AI with Google Play Billing simulation and interactive follow-ups.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
