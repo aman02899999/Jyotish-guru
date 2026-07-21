@@ -1,5 +1,7 @@
 package com.example.ui
 
+import com.example.R
+
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.animation.*
@@ -689,8 +691,26 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        // App Title & Celestial Icon
-        CelestialBadge(symbol = "✨", size = 90)
+        // App Title & Celestial Icon Logo
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape)
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(SoftPlum, DarkSpacePurple, DeepMidnight)
+                    )
+                )
+                .border(2.dp, CelestialGold, CircleShape)
+                .padding(12.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                contentDescription = "Adi Jyotish Gurus Logo",
+                modifier = Modifier.fillMaxSize()
+            )
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Adi Jyotish Gurus",
