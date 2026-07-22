@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.data.Astrologer
+import com.example.data.ReferralCodeGenerator
 import com.example.data.ReportSession
 import com.example.data.UserProfile
 import com.example.ui.theme.*
@@ -62,6 +63,9 @@ import android.content.Intent
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 // --- Custom Programmatic Cosmic Starry Background Modifier ---
 fun Modifier.mysticalCosmicBackground(): Modifier = this.drawBehind {
@@ -2664,7 +2668,7 @@ fun ProfileScreen(viewModel: AstrologyViewModel) {
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Text(
-                    text = "Referral Code: ADI-${(userProfile?.name ?: "Seeker").uppercase().replace(" ", "")}",
+                    text = "Referral Code: ${ReferralCodeGenerator.generate(userProfile?.name)}",
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold,
                     color = GalacticWhite,
@@ -3406,11 +3410,10 @@ fun DailyHoroscopeComponent(viewModel: AstrologyViewModel) {
 
     var showModal by remember { mutableStateOf(false) }
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val referralCode = remember(userProfile) {
-        val rawName = (userProfile?.name ?: "Seeker").uppercase().replace("[^A-Z0-9]".toRegex(), "")
-        val cleanedName = if (rawName.isBlank()) "SEEKER" else rawName
-        "ADI-$cleanedName"
+        ReferralCodeGenerator.generate(userProfile?.name)
     }
 
     Card(
@@ -3734,7 +3737,9 @@ fun DailyHoroscopeComponent(viewModel: AstrologyViewModel) {
                                         // Button 1: Real sharing
                                         Button(
                                             onClick = {
-                                                shareHoroscopeImage(context, userProfile?.name ?: "Seeker", text, referralCode)
+                                                coroutineScope.launch {
+                                                    shareHoroscopeImage(context, userProfile?.name ?: "Seeker", text, referralCode)
+                                                }
                                             },
                                             colors = ButtonDefaults.buttonColors(containerColor = CelestialGold),
                                             shape = RoundedCornerShape(10.dp),
@@ -3792,7 +3797,25 @@ fun DailyHoroscopeComponent(viewModel: AstrologyViewModel) {
 }
 
 // --- Image Generation & Sharing Utilities ---
-fun shareHoroscopeImage(context: Context, userName: String, text: String, referralCode: String) {
+suspend fun shareHoroscopeImage(context: Context, userName: String, text: String, referralCode: String) {
+    // Bitmap rendering, PNG compression, and file I/O are CPU/disk heavy, so this
+    // work runs off the main thread; only the resulting share Intent is dispatched on Main.
+    val contentUri = withContext(Dispatchers.IO) {
+        renderAndSaveHoroscopeImage(context, userName, text, referralCode)
+    } ?: return
+
+    val shareIntent = Intent().apply {
+        action = Intent.ACTION_SEND
+        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        setDataAndType(contentUri, context.contentResolver.getType(contentUri))
+        putExtra(Intent.EXTRA_STREAM, contentUri)
+        putExtra(Intent.EXTRA_TEXT, "Jai Ho! Here is my customized Daily Vedic Rashifal from Adi Jyotish Gurus. Use my code '$referralCode' to get a ₹100 credit when you sign up! 🔮✨\n\nDownload now to check your stars!")
+    }
+
+    context.startActivity(Intent.createChooser(shareIntent, "Share Daily Rashifal"))
+}
+
+private fun renderAndSaveHoroscopeImage(context: Context, userName: String, text: String, referralCode: String): Uri? {
     try {
         val bitmap = Bitmap.createBitmap(1080, 1350, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -3933,23 +3956,12 @@ fun shareHoroscopeImage(context: Context, userName: String, text: String, referr
         val stream = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         stream.close()
-        
-        // Share Intent
+
         val authority = "${context.packageName}.fileprovider"
-        val contentUri = FileProvider.getUriForFile(context, authority, file)
-        
-        val shareIntent = Intent().apply {
-            action = Intent.ACTION_SEND
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            setDataAndType(contentUri, context.contentResolver.getType(contentUri))
-            putExtra(Intent.EXTRA_STREAM, contentUri)
-            putExtra(Intent.EXTRA_TEXT, "Jai Ho! Here is my customized Daily Vedic Rashifal from Adi Jyotish Gurus. Use my code '$referralCode' to get a ₹100 credit when you sign up! 🔮✨\n\nDownload now to check your stars!")
-        }
-        
-        context.startActivity(Intent.createChooser(shareIntent, "Share Daily Rashifal"))
-        
+        return FileProvider.getUriForFile(context, authority, file)
     } catch (e: Exception) {
         android.util.Log.e("ShareHoroscope", "Error sharing horoscope image", e)
+        return null
     }
 }
 
@@ -4453,7 +4465,7 @@ fun AstroFaqComponent(viewModel: AstrologyViewModel) {
                                 color = CelestialGold
                             )
                             Text(
-                                text = "Gemini 3.5 Flash",
+                                text = "Gemini 2.5 Flash",
                                 fontSize = 9.sp,
                                 color = SpaceLavender,
                                 fontStyle = FontStyle.Italic

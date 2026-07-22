@@ -874,9 +874,7 @@ class AstrologyViewModel(application: Application) : AndroidViewModel(applicatio
     fun simulateReferralInstallAndPurchase(planName: String = "Mahadasha Gold", planPrice: Int = 1999) {
         viewModelScope.launch {
             val current = repository.getUserProfileDirect() ?: return@launch
-            val rawName = current.name.uppercase().replace("[^A-Z0-9]".toRegex(), "")
-            val cleanedName = if (rawName.isBlank()) "SEEKER" else rawName
-            val referralCode = "ADI-$cleanedName"
+            val referralCode = ReferralCodeGenerator.generate(current.name)
             
             if (current.referralClaimed) {
                 _referralNotification.value = "Referral Bonus is a ONE-TIME reward. You have already claimed your 50% bonus once! Use the reset button below to test again."
@@ -1300,7 +1298,11 @@ class AstrologyViewModel(application: Application) : AndroidViewModel(applicatio
                         outputStream = resolver.openOutputStream(uri)
                     }
                 } else {
-                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    // App-specific external storage never requires WRITE_EXTERNAL_STORAGE at
+                    // any API level (unlike the public Downloads dir, which needs a permission
+                    // this app never declares/requests on API 24-28).
+                    val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                    downloadsDir?.mkdirs()
                     val file = File(downloadsDir, fileName)
                     outputStream = FileOutputStream(file)
                 }
