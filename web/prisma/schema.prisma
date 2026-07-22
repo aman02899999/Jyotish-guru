@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  name                String
+  email               String    @unique
+  passwordHash        String
+  preferredLanguage   String    @default("Hinglish")
+  subscriptionTier    String    @default("Free")
+  subscriptionExpiry  DateTime?
+  walletBalance       Int       @default(0)
+  referralClaimed     Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+
+  sessions ReportSession[]
+}
+
+model ReportSession {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  userName       String
+  gender         String
+  dob            String
+  tob            String
+  pob            String
+  question       String
+
+  partnerName    String?
+  partnerDob     String?
+  partnerTob     String?
+  partnerPob     String?
+
+  astrologerId   Int
+  astrologerName String
+  specialty      String
+  price          Int
+
+  reportText     String?
+  isPaid         Boolean  @default(false)
+  rating         Int?
+
+  followUpQuestion String?
+  followUpResponse String?
+
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}
