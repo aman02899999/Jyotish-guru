@@ -16,6 +16,7 @@ behaviorally consistent.
 - **Tailwind CSS v4** with a custom dark "celestial" theme matching the Android app
 - **Prisma** + **SQLite** for persistence (no external DB needed for local dev)
 - **NextAuth v5 (Auth.js)** - email/password (Credentials) login, no OAuth app registration required
+- **Firebase Auth** (optional) - adds "Continue with Google"; see below
 - **Gemini API** - called server-side only (API routes), the key never reaches the browser
 - **Vitest** for unit tests
 
@@ -41,6 +42,34 @@ API. Get a free key at https://aistudio.google.com/apikey and set
 dashboard, Panchang calendar, astrologer browsing, billing demo) - AI text
 fields will just show a "not configured" message instead of a generated
 reading.
+
+### Google Sign-In (Firebase, optional)
+
+The "Continue with Google" button only appears if these are set in `.env`:
+
+```
+NEXT_PUBLIC_FIREBASE_API_KEY=...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
+NEXT_PUBLIC_FIREBASE_APP_ID=...
+```
+
+Get these from the Firebase Console: your project -> Project settings ->
+General -> Your apps -> Web app. They're the public client config (safe to
+expose in the browser, hence `NEXT_PUBLIC_`) - **no service account key or
+Admin SDK is used or needed**. The ID token Firebase returns after Google
+sign-in is verified server-side against Google's public keys
+(`src/lib/firebase-token.ts`) and then exchanged for a normal NextAuth
+session, so the rest of the app is unaffected either way.
+
+Two things to enable in the Firebase Console before it'll work:
+1. **Authentication -> Sign-in method -> Google -> Enable**.
+2. **Authentication -> Settings -> Authorized domains** - add whatever
+   domain you deploy to (`localhost` is authorized by default, so local dev
+   needs no extra setup).
+
+Signing in with Google links to an existing email/password account with the
+same email address rather than creating a duplicate.
 
 ## Scripts
 
