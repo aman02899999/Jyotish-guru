@@ -11,7 +11,9 @@ model User {
   id                  String    @id @default(cuid())
   name                String
   email               String    @unique
-  passwordHash        String
+  // Null for accounts created via Firebase Google Sign-In, which have no local password.
+  passwordHash        String?
+  firebaseUid         String?   @unique
   preferredLanguage   String    @default("Hinglish")
   subscriptionTier    String    @default("Free")
   subscriptionExpiry  DateTime?

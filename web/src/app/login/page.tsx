@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
+import { isFirebaseConfigured } from "@/lib/firebase-client";
 
 function LoginForm() {
   const router = useRouter();
@@ -49,6 +51,17 @@ function LoginForm() {
           <CardDescription>Log in to continue your celestial journey.</CardDescription>
         </CardHeader>
         <CardContent>
+          {isFirebaseConfigured && (
+            <>
+              <GoogleSignInButton callbackUrl={callbackUrl} />
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-space-lavender/15" />
+                <span className="text-[10px] font-bold text-space-lavender/60">OR</span>
+                <div className="h-px flex-1 bg-space-lavender/15" />
+              </div>
+            </>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="email">Email</Label>

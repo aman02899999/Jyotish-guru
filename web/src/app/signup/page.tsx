@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { GoogleSignInButton } from "@/components/google-sign-in-button";
+import { isFirebaseConfigured } from "@/lib/firebase-client";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -61,6 +63,17 @@ export default function SignupPage() {
           <CardDescription>Create a free account - takes less than a minute.</CardDescription>
         </CardHeader>
         <CardContent>
+          {isFirebaseConfigured && (
+            <>
+              <GoogleSignInButton />
+              <div className="my-5 flex items-center gap-3">
+                <div className="h-px flex-1 bg-space-lavender/15" />
+                <span className="text-[10px] font-bold text-space-lavender/60">OR</span>
+                <div className="h-px flex-1 bg-space-lavender/15" />
+              </div>
+            </>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <Label htmlFor="name">Full Name</Label>
