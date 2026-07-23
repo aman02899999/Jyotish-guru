@@ -18,6 +18,7 @@ behaviorally consistent.
 - **NextAuth v5 (Auth.js)** - email/password (Credentials) login, no OAuth app registration required
 - **Firebase Auth** (optional) - adds "Continue with Google"; see below
 - **Gemini API** - called server-side only (API routes), the key never reaches the browser
+- **Razorpay** (optional) - real payment processing for subscriptions, wallet top-ups, and per-report checkout; see below
 - **Vitest** for unit tests
 
 ## Getting started
@@ -71,6 +72,41 @@ Two things to enable in the Firebase Console before it'll work:
 Signing in with Google links to an existing email/password account with the
 same email address rather than creating a duplicate.
 
+### Payments (Razorpay, optional)
+
+Real payment processing only turns on if these are set in `.env`:
+
+```
+RAZORPAY_KEY_ID=""
+RAZORPAY_KEY_SECRET=""
+```
+
+Get both from the Razorpay Dashboard: **Settings -> API Keys**. Use a
+`rzp_test_...` key pair while developing - it behaves identically to a live
+key but no real money moves, and Razorpay's test-mode Checkout accepts
+canned test cards/UPI IDs from their docs.
+
+Without these set, subscriptions/credits/report checkout fall back to the
+clearly-labeled sandbox flow that just grants instantly with no payment -
+this is the default and requires no setup.
+
+How it works when configured:
+1. Client clicks "Subscribe" / "Recharge" / "Pay" -> `POST /api/payments/razorpay/order`.
+   The server looks up the *actual* price for the tier/pack/session id server-side
+   (the client never sends an amount) and creates a Razorpay order, recorded
+   in the `PaymentOrder` table as `status: "created"`.
+2. Razorpay's Checkout.js widget opens in the browser for the user to pay.
+3. On success, the client posts the returned order id/payment id/signature to
+   `POST /api/payments/razorpay/verify`, which recomputes the HMAC-SHA256
+   signature server-side (`RAZORPAY_KEY_SECRET`) and only grants the
+   subscription/credits/report unlock if it matches. Verification is
+   idempotent, so a duplicate call (e.g. a retried network request) can't
+   grant twice.
+
+The old demo "pay" endpoints (`/api/profile/subscribe`, `/api/profile/credits`,
+`/api/sessions/[id]/mock-pay`) return `403` once Razorpay is configured, so a
+stale client can't bypass real payment with the free demo path.
+
 ## Scripts
 
 | Command | Description |
@@ -89,10 +125,11 @@ same email address rather than creating a duplicate.
 - **Auth**: real. Passwords are hashed with bcrypt; sessions are signed JWTs via NextAuth.
 - **AI reports/horoscopes/FAQ**: real, calling the Gemini API server-side (requires your own key).
 - **Panchang calendar**: real math (mean-motion sun/moon ephemeris approximation), not random.
-- **Payments (wallet top-up, subscriptions, per-report checkout)**: demo/sandbox only, exactly like the
-  Android app's simulated Google Play Billing. No payment gateway is wired up - there are no
-  Stripe/Razorpay credentials to integrate against in this environment. Every "pay" action just
-  updates the database directly and is clearly labeled as a demo/sandbox flow in the UI.
+- **Payments (wallet top-up, subscriptions, per-report checkout)**: real via Razorpay when
+  `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` are set (see above) - signed order creation +
+  HMAC-verified payment confirmation, no client-supplied amounts trusted. Without those env vars,
+  falls back to a demo/sandbox flow (exactly like the Android app's simulated Google Play Billing)
+  that just updates the database directly and is clearly labeled as a demo in the UI.
 
 ## Project structure
 

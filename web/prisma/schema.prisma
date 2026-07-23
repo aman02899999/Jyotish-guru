@@ -22,6 +22,32 @@ model User {
   createdAt           DateTime  @default(now())
 
   sessions ReportSession[]
+  paymentOrders PaymentOrder[]
+}
+
+// One row per Razorpay order we create. purposeType/purposeRef record what
+// the payment is *for*, resolved and stored server-side at order-creation
+// time - verify never re-trusts client-supplied purpose/amount, only the
+// order id, so a tampered client request can't grant something it didn't
+// pay for.
+model PaymentOrder {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  razorpayOrderId    String    @unique
+  razorpayPaymentId  String?
+
+  purposeType        String    // "subscription" | "credits" | "report"
+  purposeRef         String    // tierId | packId | sessionId
+
+  amount             Int       // rupees (Razorpay order itself is in paise)
+  status             String    @default("created") // created | paid | failed
+
+  createdAt          DateTime  @default(now())
+  paidAt             DateTime?
+
+  @@index([userId])
 }
 
 model ReportSession {

@@ -6,11 +6,18 @@ import { Copy, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChipSelect } from "@/components/ui/chip-select";
+import { RazorpayCheckoutButton } from "@/components/razorpay-checkout-button";
 import { SUBSCRIPTION_TIERS, CREDITS_PACKS } from "@/lib/subscriptions";
 import { generateReferralCode } from "@/lib/referral-code";
 import type { SafeUser } from "@/lib/current-user";
 
-export function ProfilePanel({ initialUser }: { initialUser: SafeUser }) {
+export function ProfilePanel({
+  initialUser,
+  razorpayConfigured,
+}: {
+  initialUser: SafeUser;
+  razorpayConfigured: boolean;
+}) {
   const router = useRouter();
   const [user, setUser] = useState(initialUser);
   const [message, setMessage] = useState<string | null>(null);
@@ -43,6 +50,18 @@ export function ProfilePanel({ initialUser }: { initialUser: SafeUser }) {
       setError("Network error. Please try again.");
     } finally {
       setBusy(null);
+    }
+  }
+
+  async function refreshUser() {
+    setError(null);
+    try {
+      const response = await fetch("/api/profile");
+      const data = await response.json();
+      if (response.ok) setUser(data.user);
+      router.refresh();
+    } catch {
+      setError("Payment went through, but refreshing your profile failed. Reload the page.");
     }
   }
 
@@ -121,7 +140,7 @@ export function ProfilePanel({ initialUser }: { initialUser: SafeUser }) {
               disabled={busy === "/api/profile/cancel-subscription"}
               onClick={() => post("/api/profile/cancel-subscription")}
             >
-              Cancel Subscription (Demo)
+              Cancel Subscription
             </Button>
           </Card>
         ) : (
@@ -137,14 +156,24 @@ export function ProfilePanel({ initialUser }: { initialUser: SafeUser }) {
                   </p>
                 </div>
                 <p className="mt-1 text-xs text-space-lavender">{tier.description}</p>
-                <Button
-                  className="mt-3 w-full"
-                  size="sm"
-                  disabled={busy === "/api/profile/subscribe"}
-                  onClick={() => post("/api/profile/subscribe", { tierId: tier.id })}
-                >
-                  Subscribe (Demo)
-                </Button>
+                {razorpayConfigured ? (
+                  <RazorpayCheckoutButton
+                    purpose={{ type: "subscription", tierId: tier.id }}
+                    label={`Subscribe - ₹${tier.price}`}
+                    size="sm"
+                    className="mt-3 w-full"
+                    onSuccess={refreshUser}
+                  />
+                ) : (
+                  <Button
+                    className="mt-3 w-full"
+                    size="sm"
+                    disabled={busy === "/api/profile/subscribe"}
+                    onClick={() => post("/api/profile/subscribe", { tierId: tier.id })}
+                  >
+                    Subscribe (Demo)
+                  </Button>
+                )}
               </Card>
             ))}
           </div>
@@ -205,15 +234,26 @@ export function ProfilePanel({ initialUser }: { initialUser: SafeUser }) {
               <p className="text-2xl">{pack.iconSymbol}</p>
               <p className="mt-1 text-sm font-bold text-galactic-white">{pack.name}</p>
               <p className="text-xs text-space-lavender">+₹{pack.creditsAmount} credits</p>
-              <Button
-                size="sm"
-                variant="outline"
-                className="mt-3 w-full"
-                disabled={busy === "/api/profile/credits"}
-                onClick={() => post("/api/profile/credits", { packId: pack.id })}
-              >
-                ₹{pack.price}
-              </Button>
+              {razorpayConfigured ? (
+                <RazorpayCheckoutButton
+                  purpose={{ type: "credits", packId: pack.id }}
+                  label={`₹${pack.price}`}
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 w-full"
+                  onSuccess={refreshUser}
+                />
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="mt-3 w-full"
+                  disabled={busy === "/api/profile/credits"}
+                  onClick={() => post("/api/profile/credits", { packId: pack.id })}
+                >
+                  ₹{pack.price}
+                </Button>
+              )}
             </Card>
           ))}
         </div>
