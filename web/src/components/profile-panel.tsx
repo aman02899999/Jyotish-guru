@@ -70,10 +70,10 @@ export function ProfilePanel({ initialUser }: { initialUser: SafeUser }) {
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center text-center">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-celestial-gold bg-gradient-to-br from-soft-plum to-dark-space-purple text-4xl">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-celestial-gold bg-gradient-to-br from-soft-plum to-dark-space-purple text-4xl shadow-[0_0_40px_-8px_rgba(212,175,55,0.6)]">
           {isSubscribed ? "🧙" : "🧘"}
         </div>
-        <p className="mt-4 text-xl font-bold text-galactic-white">{user.name}</p>
+        <p className="font-display mt-4 text-xl font-semibold tracking-wide text-galactic-white">{user.name}</p>
         <p className="text-sm text-space-lavender">{user.email}</p>
       </div>
 

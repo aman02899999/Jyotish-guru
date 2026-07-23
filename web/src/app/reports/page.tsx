@@ -16,7 +16,7 @@ export default async function ReportsPage() {
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
-      <h1 className="mb-6 text-2xl font-extrabold text-celestial-gold">My Consultations</h1>
+      <h1 className="font-display mb-6 text-2xl font-semibold tracking-wide text-celestial-gold">My Consultations</h1>
 
       {sessions.length === 0 ? (
         <div className="flex flex-col items-center gap-2 py-16 text-center">

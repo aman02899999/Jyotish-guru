@@ -61,7 +61,7 @@ export function ReportView({ session }: { session: ReportSession }) {
     <div className="space-y-6">
       <div className="no-print flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-bold text-galactic-white">Your Consultation</h1>
+          <h1 className="font-display text-lg font-semibold tracking-wide text-galactic-white">Your Consultation</h1>
           <p className="text-xs text-celestial-gold">
             {session.astrologerName} · {session.specialty}
           </p>
@@ -73,7 +73,9 @@ export function ReportView({ session }: { session: ReportSession }) {
 
       <Card>
         <CardContent className="pt-5">
-          <h2 className="mb-4 text-lg font-bold text-celestial-gold">Vedic Reading &amp; Kundli Analysis</h2>
+          <h2 className="font-display mb-4 text-lg font-semibold tracking-wide text-celestial-gold">
+            Vedic Reading &amp; Kundli Analysis
+          </h2>
           <p className="whitespace-pre-line text-sm leading-relaxed text-galactic-white">{session.reportText}</p>
         </CardContent>
       </Card>

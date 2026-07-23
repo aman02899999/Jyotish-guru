@@ -46,8 +46,10 @@ function LoginForm() {
     <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md items-center px-4 py-12">
       <Card className="w-full">
         <CardHeader className="text-center">
-          <span className="text-4xl">🕉️</span>
-          <CardTitle className="mt-2 text-xl">Welcome back, Seeker</CardTitle>
+          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-celestial-gold/40 bg-gradient-to-br from-celestial-gold/20 via-soft-plum to-transparent text-3xl shadow-[0_0_30px_-6px_rgba(212,175,55,0.55)]">
+            🕉️
+          </span>
+          <CardTitle className="mt-3 text-xl">Welcome back, Seeker</CardTitle>
           <CardDescription>Log in to continue your celestial journey.</CardDescription>
         </CardHeader>
         <CardContent>
