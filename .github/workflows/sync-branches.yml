@@ -1,0 +1,45 @@
+name: Sync platform branches from main
+
+# Keeps the long-lived `android` and `web` platform branches current with
+# `main`. Runs whenever main is pushed to, merging main into each branch
+# and pushing the result. Can also be triggered manually to backfill or
+# retry after a conflict is resolved.
+#
+# This only fires once this workflow file itself is on `main` - GitHub
+# reads push-triggered workflow definitions from the branch receiving the
+# push.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        branch: [android, web]
+    steps:
+      - name: Checkout ${{ matrix.branch }}
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ matrix.branch }}
+          fetch-depth: 0
+
+      - name: Merge main into ${{ matrix.branch }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          if git merge --no-edit origin/main; then
+            git push origin HEAD:${{ matrix.branch }}
+          else
+            echo "::error::Merging main into '${{ matrix.branch }}' produced a conflict. Resolve it manually: git checkout ${{ matrix.branch }} && git merge main"
+            git merge --abort
+            exit 1
+          fi

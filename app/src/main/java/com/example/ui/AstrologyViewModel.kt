@@ -350,55 +350,15 @@ class AstrologyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun calculatePanchang(dateStr: String, language: String): PanchangData {
-        val hash = dateStr.hashCode()
-        val absHash = kotlin.math.abs(hash)
-
-        val tithis = listOf(
-            "Pratipada", "Dwitiya", "Tritiya", "Chaturthi (Ganesh Chaturthi)", "Panchami",
-            "Shashthi", "Saptami", "Ashtami", "Navami (Ram Navami)", "Dashami",
-            "Ekadashi (Shubh Vrat)", "Dwadashi", "Trayodashi (Pradosh)", "Chaturdashi",
-            "Purnima (Full Moon / Sacred Day)", "Amavasya (New Moon / Pitru Day)"
-        )
-        val nakshatras = listOf(
-            "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu",
-            "Pushya", "Ashlesha", "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta",
-            "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha", "Mula", "Purvashadha",
-            "Uttarashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada",
-            "Uttara Bhadrapada", "Revati"
-        )
-        val yogas = listOf(
-            "Vishkumbha", "Priti", "Ayushman", "Saubhagya", "Shobhana", "Atiganda", "Sukarma",
-            "Dhriti", "Shula", "Ganda", "Vridhi", "Dhruva", "Vyaghata", "Harshana", "Vajra",
-            "Siddhi", "Vyatipata", "Variyan", "Parigha", "Shiva", "Siddha", "Sadhya", "Shubha",
-            "Shukla", "Brahma", "Indra", "Vaidhriti"
-        )
-        val karanas = listOf(
-            "Bava", "Balava", "Kaulava", "Taitila", "Gara", "Vanija", "Vishti", "Shakuni",
-            "Chatushpada", "Naga", "Kinstughna"
-        )
-        val moonSigns = listOf(
-            "Mesha (Aries)", "Vrishabha (Taurus)", "Mithuna (Gemini)", "Karka (Cancer)",
-            "Simha (Leo)", "Kanya (Virgo)", "Tula (Libra)", "Vrishchika (Scorpio)",
-            "Dhanu (Sagittarius)", "Makara (Capricorn)", "Kumbha (Aquarius)", "Meena (Pisces)"
-        )
-
-        val tithi = tithis[absHash % tithis.size]
-        val nakshatra = nakshatras[(absHash + 3) % nakshatras.size]
-        val yoga = yogas[(absHash + 7) % yogas.size]
-        val karana = karanas[(absHash + 11) % karanas.size]
-        val moonSign = moonSigns[(absHash + 13) % moonSigns.size]
-
-        val sunriseMin = 40 + (absHash % 21)
-        val sunsetMin = 30 + (absHash % 45)
-        val sunrise = "05:$sunriseMin AM"
-        val sunset = "06:$sunsetMin PM"
-
-        val rahuKaalWindows = listOf(
-            "07:30 AM - 09:00 AM", "09:00 AM - 10:30 AM", "10:30 AM - 12:00 PM",
-            "12:00 PM - 01:30 PM", "01:30 PM - 03:00 PM", "03:00 PM - 04:30 PM",
-            "04:30 PM - 06:00 PM"
-        )
-        val rahuKaal = rahuKaalWindows[absHash % rahuKaalWindows.size]
+        val elements = PanchangCalculator.calculate(dateStr)
+        val tithi = elements.tithi
+        val nakshatra = elements.nakshatra
+        val yoga = elements.yoga
+        val karana = elements.karana
+        val moonSign = elements.moonSign
+        val sunrise = elements.sunrise
+        val sunset = elements.sunset
+        val rahuKaal = elements.rahuKaal
 
         val explanation = when (language.lowercase()) {
             "hinglish" -> {
@@ -655,18 +615,7 @@ class AstrologyViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun getConsultationPrice(astrologerId: Int, basePrice: Int, tier: String): Int {
-        return when (tier) {
-            "Mahadasha Gold" -> 0
-            "Rashifal Silver" -> {
-                // Free: Shastri (1), Joshi (3), Meera (4), Siddharth (6), Swami (7)
-                if (astrologerId in listOf(1, 3, 4, 6, 7)) 0 else (basePrice * 0.75).toInt()
-            }
-            "Nakshatra Bronze" -> {
-                // Free: Shastri (1), Joshi (3), Siddharth (6)
-                if (astrologerId in listOf(1, 3, 6)) 0 else (basePrice * 0.90).toInt()
-            }
-            else -> basePrice
-        }
+        return PricingCalculator.getConsultationPrice(astrologerId, basePrice, tier)
     }
 
     init {
@@ -925,9 +874,7 @@ class AstrologyViewModel(application: Application) : AndroidViewModel(applicatio
     fun simulateReferralInstallAndPurchase(planName: String = "Mahadasha Gold", planPrice: Int = 1999) {
         viewModelScope.launch {
             val current = repository.getUserProfileDirect() ?: return@launch
-            val rawName = current.name.uppercase().replace("[^A-Z0-9]".toRegex(), "")
-            val cleanedName = if (rawName.isBlank()) "SEEKER" else rawName
-            val referralCode = "ADI-$cleanedName"
+            val referralCode = ReferralCodeGenerator.generate(current.name)
             
             if (current.referralClaimed) {
                 _referralNotification.value = "Referral Bonus is a ONE-TIME reward. You have already claimed your 50% bonus once! Use the reset button below to test again."
@@ -1351,7 +1298,11 @@ class AstrologyViewModel(application: Application) : AndroidViewModel(applicatio
                         outputStream = resolver.openOutputStream(uri)
                     }
                 } else {
-                    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    // App-specific external storage never requires WRITE_EXTERNAL_STORAGE at
+                    // any API level (unlike the public Downloads dir, which needs a permission
+                    // this app never declares/requests on API 24-28).
+                    val downloadsDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS)
+                    downloadsDir?.mkdirs()
                     val file = File(downloadsDir, fileName)
                     outputStream = FileOutputStream(file)
                 }
