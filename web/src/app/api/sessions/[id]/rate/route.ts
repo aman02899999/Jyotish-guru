@@ -4,7 +4,19 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getOwnedSession } from "@/lib/owned-session";
 import { prisma } from "@/lib/prisma";
 
-const rateSchema = z.object({ rating: z.number().int().min(1).max(5) });
+// No URLs - a lightweight guard against link-spam in publicly-displayed
+// review text, since this app has no moderation queue/admin review flow.
+const URL_PATTERN = /https?:\/\/|www\./i;
+
+const rateSchema = z.object({
+  rating: z.number().int().min(1).max(5),
+  reviewText: z
+    .string()
+    .trim()
+    .max(500, "Review must be 500 characters or fewer.")
+    .refine((text) => !URL_PATTERN.test(text), "Reviews can't contain links.")
+    .optional(),
+});
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
@@ -24,7 +36,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
   const updated = await prisma.reportSession.update({
     where: { id: session.id },
-    data: { rating: parsed.data.rating },
+    data: {
+      rating: parsed.data.rating,
+      reviewText: parsed.data.reviewText || null,
+    },
   });
 
   return NextResponse.json({ session: updated });

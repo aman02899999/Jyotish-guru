@@ -114,6 +114,10 @@ model ReportSession {
   reportText     String?
   isPaid         Boolean  @default(false)
   rating         Int?
+  // Optional written feedback alongside the star rating. Only ever
+  // populated by the account holder who actually paid for and completed
+  // this session - see lib/reviews.ts for how these surface publicly.
+  reviewText     String?
 
   followUpQuestion String?
   followUpResponse String?

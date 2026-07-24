@@ -18,7 +18,9 @@ export function ReportView({ session }: { session: ReportSession }) {
   const [followUpError, setFollowUpError] = useState<string | null>(null);
 
   const [rating, setRating] = useState(session.rating ?? 0);
-  const [isRating, setIsRating] = useState(false);
+  const [reviewText, setReviewText] = useState("");
+  const [isSubmittingRating, setIsSubmittingRating] = useState(false);
+  const [ratingError, setRatingError] = useState<string | null>(null);
 
   async function submitFollowUp(event: React.FormEvent) {
     event.preventDefault();
@@ -44,19 +46,27 @@ export function ReportView({ session }: { session: ReportSession }) {
     }
   }
 
-  async function submitRating(star: number) {
-    if (session.rating !== null || isRating) return;
-    setRating(star);
-    setIsRating(true);
+  async function submitReview(event: React.FormEvent) {
+    event.preventDefault();
+    if (session.rating !== null || rating === 0 || isSubmittingRating) return;
+    setIsSubmittingRating(true);
+    setRatingError(null);
     try {
-      await fetch(`/api/sessions/${session.id}/rate`, {
+      const response = await fetch(`/api/sessions/${session.id}/rate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rating: star }),
+        body: JSON.stringify({ rating, reviewText: reviewText.trim() || undefined }),
       });
+      const data = await response.json();
+      if (!response.ok) {
+        setRatingError(data.error ?? "Something went wrong.");
+        return;
+      }
       router.refresh();
+    } catch {
+      setRatingError("Network error. Please try again.");
     } finally {
-      setIsRating(false);
+      setIsSubmittingRating(false);
     }
   }
 
@@ -97,7 +107,7 @@ export function ReportView({ session }: { session: ReportSession }) {
               key={star}
               type="button"
               disabled={session.rating !== null}
-              onClick={() => submitRating(star)}
+              onClick={() => setRating(star)}
               className="disabled:cursor-default"
               aria-label={`Rate ${star} stars`}
             >
@@ -107,10 +117,29 @@ export function ReportView({ session }: { session: ReportSession }) {
             </button>
           ))}
         </div>
-        {session.rating !== null && (
-          <p className="mt-2 text-xs text-clay">
-            Thank you! Your feedback helps other seekers and refines our astrologer standings.
-          </p>
+
+        {session.rating === null ? (
+          <form onSubmit={submitReview} className="mt-4 space-y-3 text-left">
+            <Textarea
+              value={reviewText}
+              onChange={(e) => setReviewText(e.target.value)}
+              placeholder="Optional: share your experience - great reviews may be featured on our site..."
+              maxLength={500}
+            />
+            {ratingError && <p className="text-xs text-red-600">{ratingError}</p>}
+            <Button type="submit" className="w-full" disabled={rating === 0 || isSubmittingRating}>
+              {isSubmittingRating ? "Submitting..." : "Submit Review"}
+            </Button>
+          </form>
+        ) : (
+          <div className="mt-4 space-y-3 text-left">
+            {session.reviewText && (
+              <p className="rounded-xl bg-cream p-3 text-sm leading-relaxed text-ink">{session.reviewText}</p>
+            )}
+            <p className="text-center text-xs text-clay">
+              Thank you! Your feedback helps other seekers and refines our astrologer standings.
+            </p>
+          </div>
         )}
       </Card>
 

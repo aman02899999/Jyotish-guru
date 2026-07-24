@@ -8,6 +8,8 @@ import { FadeIn } from "@/components/fade-in";
 import { NavagrahaHero } from "@/components/navagraha-scene";
 import { Marquee } from "@/components/marquee";
 import { TiltCard } from "@/components/tilt-card";
+import { TestimonialsSection } from "@/components/testimonials-section";
+import { getFeaturedReviews } from "@/lib/reviews";
 
 const RASHI_MARQUEE = [
   { symbol: "♈", label: "Mesha" },
@@ -52,6 +54,8 @@ export default async function LandingPage() {
   if (session?.user) {
     redirect("/dashboard");
   }
+
+  const reviews = await getFeaturedReviews();
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 sm:py-24">
@@ -138,6 +142,8 @@ export default async function LandingPage() {
           ))}
         </div>
       </section>
+
+      <TestimonialsSection reviews={reviews} />
 
       <FadeIn>
         <section className="relative mt-24 overflow-hidden rounded-3xl border border-saffron/30 bg-gradient-to-b from-paper to-cream p-10 text-center shadow-[inset_0_1px_0_0_rgba(234,88,12,0.15),0_30px_60px_-30px_rgba(42,27,18,0.18)]">
