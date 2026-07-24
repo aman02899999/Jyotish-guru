@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { calculateGunaMilan, moonNakshatraName } from "./kundli-milan-calculator";
+import { calculateGunaMilan, calculateCompatibility, moonNakshatraName } from "./kundli-milan-calculator";
 
 describe("calculateGunaMilan", () => {
   it("is deterministic and symmetric-independent of input order for the total", () => {
@@ -47,5 +47,47 @@ describe("calculateGunaMilan", () => {
 describe("moonNakshatraName", () => {
   it("returns a non-empty nakshatra name", () => {
     expect(moonNakshatraName("1995-08-15").length).toBeGreaterThan(0);
+  });
+});
+
+describe("calculateCompatibility", () => {
+  it("defaults to marriage, matching calculateGunaMilan exactly", () => {
+    expect(calculateCompatibility("1995-08-15", "1997-03-22")).toEqual(
+      calculateGunaMilan("1995-08-15", "1997-03-22")
+    );
+  });
+
+  it("friendship uses exactly Varna/Tara/Graha Maitri/Gana, dropping marriage-specific kootas", () => {
+    const result = calculateCompatibility("1990-05-10", "1992-11-03", "friendship");
+    expect(result.kootas.map((k) => k.name)).toEqual(["Varna", "Tara", "Graha Maitri", "Gana"]);
+    expect(result.maxPoints).toBe(1 + 3 + 5 + 6);
+    expect(result.kootas.some((k) => k.name === "Yoni" || k.name === "Nadi")).toBe(false);
+  });
+
+  it("business uses exactly Varna/Vashya/Graha Maitri/Bhakoot", () => {
+    const result = calculateCompatibility("1990-05-10", "1992-11-03", "business");
+    expect(result.kootas.map((k) => k.name)).toEqual(["Varna", "Vashya", "Graha Maitri", "Bhakoot"]);
+    expect(result.maxPoints).toBe(1 + 2 + 5 + 7);
+  });
+
+  it("never exceeds each type's own max across a range of dates", () => {
+    const dates = ["2000-01-01", "1985-06-15", "1999-12-31", "2005-02-28", "1975-07-04"];
+    for (const type of ["marriage", "friendship", "business"] as const) {
+      for (const d1 of dates) {
+        for (const d2 of dates) {
+          const result = calculateCompatibility(d1, d2, type);
+          expect(result.totalPoints).toBeGreaterThanOrEqual(0);
+          expect(result.totalPoints).toBeLessThanOrEqual(result.maxPoints);
+        }
+      }
+    }
+  });
+
+  it("gives a non-empty, type-specific verdict for friendship and business", () => {
+    const friendship = calculateCompatibility("2000-01-01", "2003-06-15", "friendship");
+    const business = calculateCompatibility("2000-01-01", "2003-06-15", "business");
+    expect(friendship.verdict.length).toBeGreaterThan(0);
+    expect(business.verdict.length).toBeGreaterThan(0);
+    expect(friendship.verdict).not.toBe(business.verdict);
   });
 });

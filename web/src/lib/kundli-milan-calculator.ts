@@ -20,10 +20,25 @@ export interface Koota {
 
 export interface GunaMilanResult {
   totalPoints: number;
-  maxPoints: 36;
+  maxPoints: number;
   verdict: string;
   kootas: Koota[];
 }
+
+export type CompatibilityType = "marriage" | "friendship" | "business";
+
+export interface CompatibilityTypeInfo {
+  id: CompatibilityType;
+  label: string;
+  icon: string;
+  description: string;
+}
+
+export const COMPATIBILITY_TYPES: CompatibilityTypeInfo[] = [
+  { id: "marriage", label: "Marriage", icon: "💍", description: "The full 8-factor, 36-point classical Ashtakoot Guna Milan." },
+  { id: "friendship", label: "Friendship", icon: "🤝", description: "Temperament and mental-compatibility factors most relevant to close friendships." },
+  { id: "business", label: "Business Partner", icon: "💼", description: "Leadership, mutual influence, and working-relationship harmony factors." },
+];
 
 const NAKSHATRA_NAMES = [
   "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu",
@@ -184,7 +199,7 @@ function bhakootKoota(rashi1: number, rashi2: number): Koota {
   const distance = ((rashi2 - rashi1 + 12) % 12) + 1; // 1..12
   const doshaDistances = new Set([2, 12, 5, 9, 6, 8]);
   const points = doshaDistances.has(distance) ? 0 : 7;
-  return { name: "Bhakoot", points, maxPoints: 7, description: "Overall relationship harmony and family prosperity." };
+  return { name: "Bhakoot", points, maxPoints: 7, description: "Overall relationship harmony and shared prosperity." };
 }
 
 // --- Nadi (8 points): most heavily weighted - biological/genetic compatibility ---
@@ -194,36 +209,66 @@ function nadiKoota(nak1: number, nak2: number): Koota {
   return { name: "Nadi", points, maxPoints: 8, description: "Health and genetic compatibility of future offspring - the most heavily weighted factor." };
 }
 
-function verdictFor(total: number): string {
-  if (total >= 32) return "Excellent match - highly recommended by classical standards.";
-  if (total >= 24) return "Good match - a favorable compatibility score.";
-  if (total >= 18) return "Average match - workable, best discussed with an astrologer.";
-  return "Below-average match by this classical system - a detailed consultation is strongly advised before proceeding.";
+// Marriage uses all 8 classical kootas. Friendship/business reuse the same
+// underlying koota math but keep only the factors relevant to that kind of
+// relationship - Yoni (physical/instinctual) and Nadi (offspring health) are
+// marriage-specific and dropped, rather than inventing a separate, less
+// classically-grounded scoring system for non-marital relationships.
+const KOOTA_NAMES_BY_TYPE: Record<CompatibilityType, string[]> = {
+  marriage: ["Varna", "Vashya", "Tara", "Yoni", "Graha Maitri", "Gana", "Bhakoot", "Nadi"],
+  friendship: ["Varna", "Tara", "Graha Maitri", "Gana"],
+  business: ["Varna", "Vashya", "Graha Maitri", "Bhakoot"],
+};
+
+function verdictFor(type: CompatibilityType, totalPoints: number, maxPoints: number): string {
+  if (type === "marriage") {
+    if (totalPoints >= 32) return "Excellent match - highly recommended by classical standards.";
+    if (totalPoints >= 24) return "Good match - a favorable compatibility score.";
+    if (totalPoints >= 18) return "Average match - workable, best discussed with an astrologer.";
+    return "Below-average match by this classical system - a detailed consultation is strongly advised before proceeding.";
+  }
+
+  const noun = type === "friendship" ? "friendship" : "business partnership";
+  const percent = totalPoints / maxPoints;
+  if (percent >= 0.8) return `Excellent ${noun} compatibility - a strongly supportive dynamic.`;
+  if (percent >= 0.6) return `Good ${noun} compatibility - a generally favorable dynamic.`;
+  if (percent >= 0.4) return `Average ${noun} compatibility - workable with conscious effort from both sides.`;
+  return `Below-average ${noun} compatibility by this classical system - worth going in with awareness of the friction points.`;
 }
 
-export function calculateGunaMilan(dob1: string, dob2: string): GunaMilanResult {
+export function calculateCompatibility(
+  dob1: string,
+  dob2: string,
+  type: CompatibilityType = "marriage"
+): GunaMilanResult {
   const p1 = moonPlacement(dob1);
   const p2 = moonPlacement(dob2);
 
-  const kootas = [
-    varnaKoota(p1.rashiIndex, p2.rashiIndex),
-    vashyaKoota(p1.rashiIndex, p2.rashiIndex),
-    taraKoota(p1.nakshatraIndex, p2.nakshatraIndex),
-    yoniKoota(p1.nakshatraIndex, p2.nakshatraIndex),
-    grahaMaitriKoota(p1.rashiIndex, p2.rashiIndex),
-    ganaKoota(p1.nakshatraIndex, p2.nakshatraIndex),
-    bhakootKoota(p1.rashiIndex, p2.rashiIndex),
-    nadiKoota(p1.nakshatraIndex, p2.nakshatraIndex),
-  ];
+  const allKootas: Record<string, Koota> = {
+    Varna: varnaKoota(p1.rashiIndex, p2.rashiIndex),
+    Vashya: vashyaKoota(p1.rashiIndex, p2.rashiIndex),
+    Tara: taraKoota(p1.nakshatraIndex, p2.nakshatraIndex),
+    Yoni: yoniKoota(p1.nakshatraIndex, p2.nakshatraIndex),
+    "Graha Maitri": grahaMaitriKoota(p1.rashiIndex, p2.rashiIndex),
+    Gana: ganaKoota(p1.nakshatraIndex, p2.nakshatraIndex),
+    Bhakoot: bhakootKoota(p1.rashiIndex, p2.rashiIndex),
+    Nadi: nadiKoota(p1.nakshatraIndex, p2.nakshatraIndex),
+  };
 
+  const kootas = KOOTA_NAMES_BY_TYPE[type].map((name) => allKootas[name]);
   const totalPoints = kootas.reduce((sum, k) => sum + k.points, 0);
+  const maxPoints = kootas.reduce((sum, k) => sum + k.maxPoints, 0);
 
   return {
     totalPoints,
-    maxPoints: 36,
-    verdict: verdictFor(totalPoints),
+    maxPoints,
+    verdict: verdictFor(type, totalPoints, maxPoints),
     kootas,
   };
+}
+
+export function calculateGunaMilan(dob1: string, dob2: string): GunaMilanResult {
+  return calculateCompatibility(dob1, dob2, "marriage");
 }
 
 export function moonNakshatraName(dob: string): string {

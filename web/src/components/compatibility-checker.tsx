@@ -7,11 +7,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { ShareButton } from "@/components/share-button";
-import { calculateGunaMilan, moonNakshatraName, type GunaMilanResult } from "@/lib/kundli-milan-calculator";
+import {
+  calculateCompatibility,
+  moonNakshatraName,
+  COMPATIBILITY_TYPES,
+  type GunaMilanResult,
+  type CompatibilityType,
+} from "@/lib/kundli-milan-calculator";
+import { cn } from "@/lib/utils";
 
 const today = new Date().toISOString().slice(0, 10);
 
 export function CompatibilityChecker() {
+  const [type, setType] = useState<CompatibilityType>("marriage");
   const [dob1, setDob1] = useState("");
   const [dob2, setDob2] = useState("");
   const [result, setResult] = useState<GunaMilanResult | null>(null);
@@ -19,14 +27,42 @@ export function CompatibilityChecker() {
   function check(event: React.FormEvent) {
     event.preventDefault();
     if (!dob1 || !dob2) return;
-    setResult(calculateGunaMilan(dob1, dob2));
+    setResult(calculateCompatibility(dob1, dob2, type));
+  }
+
+  function selectType(next: CompatibilityType) {
+    setType(next);
+    setResult(null);
   }
 
   const scorePercent = result ? Math.round((result.totalPoints / result.maxPoints) * 100) : 0;
+  const typeInfo = COMPATIBILITY_TYPES.find((t) => t.id === type)!;
 
   return (
     <div className="space-y-6">
       <Card className="p-5">
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-clay">Relationship Type</p>
+        <div className="mb-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          {COMPATIBILITY_TYPES.map((t) => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => selectType(t.id)}
+              className={cn(
+                "rounded-xl border p-3 text-left transition-colors",
+                type === t.id
+                  ? "border-saffron bg-saffron/10"
+                  : "border-clay/20 hover:border-saffron/40"
+              )}
+            >
+              <p className="text-sm font-bold text-ink">
+                {t.icon} {t.label}
+              </p>
+              <p className="mt-1 text-[10px] leading-relaxed text-clay">{t.description}</p>
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={check} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="dob1">Partner 1 - Date of Birth</Label>
@@ -58,14 +94,14 @@ export function CompatibilityChecker() {
             <p className="mt-4 text-sm font-bold text-ink">{result.verdict}</p>
 
             <ShareButton
-              filename="kundli-milan-score.png"
+              filename={`${type}-compatibility-score.png`}
               label="Share This Score"
               className="mt-4 w-full"
               options={{
-                emoji: "💑",
-                title: "Guna Milan Score",
+                emoji: typeInfo.icon,
+                title: `${typeInfo.label} Compatibility`,
                 subtitle: `${moonNakshatraName(dob1)} & ${moonNakshatraName(dob2)} Moon Nakshatras`,
-                stat: { label: "out of 36 points", value: `${result.totalPoints}/${result.maxPoints}` },
+                stat: { label: `out of ${result.maxPoints} points`, value: `${result.totalPoints}/${result.maxPoints}` },
                 lines: result.kootas
                   .slice(0, 4)
                   .map((k) => ({ label: k.name, value: `${k.points}/${k.maxPoints}` })),
@@ -90,8 +126,9 @@ export function CompatibilityChecker() {
           </div>
 
           <p className="text-center text-[10px] text-clay/60">
-            Approximate Ashtakoot Guna Milan, for guidance and entertainment only - not a substitute for a full
-            consultation with a professional astrologer before making marriage decisions.
+            Approximate Ashtakoot Guna Milan factors selected for {typeInfo.label.toLowerCase()} compatibility, for
+            guidance and entertainment only - not a substitute for a full consultation with a professional
+            astrologer.
           </p>
         </>
       )}
