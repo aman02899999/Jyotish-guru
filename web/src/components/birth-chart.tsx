@@ -1,5 +1,6 @@
 import { calculateBirthChart, RASHI_NAMES, RASHI_ENGLISH_NAMES } from "@/lib/birth-chart-calculator";
 import { Card } from "@/components/ui/card";
+import { ShareButton } from "@/components/share-button";
 
 // Standard North Indian chart construction: outer square + both diagonals +
 // the diamond connecting edge midpoints, producing 4 "kite" houses (1,4,7,10)
@@ -101,6 +102,21 @@ export function BirthChart({ dob, tob }: { dob: string; tob: string }) {
           </div>
         ))}
       </div>
+
+      <ShareButton
+        filename="birth-chart.png"
+        label="Share My Birth Chart"
+        className="no-print mt-4 w-full"
+        options={{
+          emoji: "🪐",
+          title: "My Birth Chart",
+          subtitle: `Ascendant: ${RASHI_NAMES[chart.ascendantSignIndex]} (${RASHI_ENGLISH_NAMES[chart.ascendantSignIndex]})`,
+          lines: chart.placements
+            .slice(0, 5)
+            .map((p) => ({ label: p.name, value: `${RASHI_ENGLISH_NAMES[p.signIndex]} ${p.degreeInSign.toFixed(1)}°` })),
+          footer: "Get your full birth chart at Adi Jyotish Gurus",
+        }}
+      />
     </Card>
   );
 }

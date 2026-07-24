@@ -5,6 +5,7 @@ import { Sparkles } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/share-button";
 import { calculateNumerologyProfile, type NumerologyProfile } from "@/lib/numerology-calculator";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -75,6 +76,24 @@ export function NumerologyCard({ userName }: { userName: string }) {
           <p className="rounded-xl border border-saffron/15 bg-paper p-3 text-xs leading-relaxed text-clay">
             {profile.traits}
           </p>
+
+          <ShareButton
+            filename={`${userName}-numerology.png`}
+            label="Share My Numerology"
+            className="w-full"
+            options={{
+              emoji: "🔢",
+              title: `${userName}'s Numerology`,
+              stat: { label: "Life Path Number", value: String(profile.lifePathNumber) },
+              lines: [
+                { label: "Destiny Number", value: String(profile.destinyNumber) },
+                { label: "Ruling Planet", value: profile.rulingPlanet },
+                { label: "Lucky Day", value: profile.luckyDay },
+                { label: "Lucky Color", value: profile.luckyColor },
+              ],
+              footer: "Get your numerology reading at Adi Jyotish Gurus",
+            }}
+          />
         </div>
       )}
     </Card>

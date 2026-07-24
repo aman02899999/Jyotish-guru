@@ -6,6 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { ShareButton } from "@/components/share-button";
 import { calculateGunaMilan, moonNakshatraName, type GunaMilanResult } from "@/lib/kundli-milan-calculator";
 
 const today = new Date().toISOString().slice(0, 10);
@@ -55,6 +56,22 @@ export function CompatibilityChecker() {
               <div className="h-full rounded-full bg-saffron" style={{ width: `${scorePercent}%` }} />
             </div>
             <p className="mt-4 text-sm font-bold text-ink">{result.verdict}</p>
+
+            <ShareButton
+              filename="kundli-milan-score.png"
+              label="Share This Score"
+              className="mt-4 w-full"
+              options={{
+                emoji: "💑",
+                title: "Guna Milan Score",
+                subtitle: `${moonNakshatraName(dob1)} & ${moonNakshatraName(dob2)} Moon Nakshatras`,
+                stat: { label: "out of 36 points", value: `${result.totalPoints}/${result.maxPoints}` },
+                lines: result.kootas
+                  .slice(0, 4)
+                  .map((k) => ({ label: k.name, value: `${k.points}/${k.maxPoints}` })),
+                footer: "Check your compatibility at Adi Jyotish Gurus",
+              }}
+            />
           </Card>
 
           <div className="space-y-2">
