@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { BirthChart } from "@/components/birth-chart";
+import { TransitAlerts } from "@/components/transit-alerts";
 import { Printer, Star } from "lucide-react";
 
 export function ReportView({ session }: { session: ReportSession }) {
@@ -73,6 +74,8 @@ export function ReportView({ session }: { session: ReportSession }) {
       </div>
 
       <BirthChart dob={session.dob} tob={session.tob} />
+
+      <TransitAlerts dob={session.dob} tob={session.tob} />
 
       <Card>
         <CardContent className="pt-5">
