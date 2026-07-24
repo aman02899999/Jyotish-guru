@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/current-user";
-import { getAstrologersWithStats } from "@/lib/astrologer-stats";
+import { getAstrologersWithStats, type AstrologerWithStats } from "@/lib/astrologer-stats";
+import { getFavoriteAstrologerIds } from "@/lib/favorites";
 import { calculatePanchang, panchangExplanation } from "@/lib/panchang-calculator";
+import { AstrologerCard } from "@/components/astrologer-card";
 import { PanchangCard } from "@/components/panchang-card";
 import { DailyHoroscopeCard } from "@/components/daily-horoscope-card";
 import { NumerologyCard } from "@/components/numerology-card";
@@ -19,7 +21,9 @@ export default async function DashboardPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
 
-  const astrologers = await getAstrologersWithStats();
+  const favoriteIds = await getFavoriteAstrologerIds(user.id);
+  const astrologers = await getAstrologersWithStats(favoriteIds);
+  const favoriteAstrologers = astrologers.filter((a) => a.isFavorited);
 
   const todayStr = new Date().toISOString().slice(0, 10);
   const elements = calculatePanchang(todayStr);
@@ -76,6 +80,17 @@ export default async function DashboardPage() {
         </FadeIn>
       </div>
 
+      {favoriteAstrologers.length > 0 && (
+        <FadeIn delay={0.22}>
+          <div>
+            <h2 className="font-display mb-4 text-lg font-semibold tracking-wide text-ink">
+              🤍 Your Guides
+            </h2>
+            <FavoriteAstrologerGrid astrologers={favoriteAstrologers} />
+          </div>
+        </FadeIn>
+      )}
+
       <FadeIn delay={0.25}>
         <div>
           <h2 className="font-display mb-4 text-lg font-semibold tracking-wide text-ink">
@@ -84,6 +99,16 @@ export default async function DashboardPage() {
           <AstrologerBrowser astrologers={astrologers} />
         </div>
       </FadeIn>
+    </div>
+  );
+}
+
+function FavoriteAstrologerGrid({ astrologers }: { astrologers: AstrologerWithStats[] }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      {astrologers.map((astrologer) => (
+        <AstrologerCard key={astrologer.id} astrologer={astrologer} />
+      ))}
     </div>
   );
 }

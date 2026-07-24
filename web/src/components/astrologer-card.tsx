@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { TiltCard } from "@/components/tilt-card";
+import { FavoriteButton } from "@/components/favorite-button";
 import type { AstrologerWithStats } from "@/lib/astrologer-stats";
 
 export function AstrologerCard({ astrologer }: { astrologer: AstrologerWithStats }) {
@@ -19,9 +20,12 @@ export function AstrologerCard({ astrologer }: { astrologer: AstrologerWithStats
                 <p className="text-xs font-semibold text-saffron">{astrologer.specialty}</p>
               </div>
             </div>
-            <span className="whitespace-nowrap text-lg font-extrabold text-saffron">
-              ₹{astrologer.price}
-            </span>
+            <div className="flex items-center gap-2">
+              <FavoriteButton astrologerId={astrologer.id} initialFavorited={astrologer.isFavorited} />
+              <span className="whitespace-nowrap text-lg font-extrabold text-saffron">
+                ₹{astrologer.price}
+              </span>
+            </div>
           </div>
 
           <p className="line-clamp-2 text-xs text-clay/90">{astrologer.bio}</p>

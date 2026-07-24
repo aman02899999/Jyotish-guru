@@ -25,6 +25,20 @@ model User {
   sessions ReportSession[]
   paymentOrders PaymentOrder[]
   walletTransactions WalletTransaction[]
+  favoriteAstrologers FavoriteAstrologer[]
+}
+
+// Astrologers themselves are a static roster (lib/astrologers.ts), not a DB
+// table, so this only stores the (userId, astrologerId) bookmark pair.
+model FavoriteAstrologer {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  astrologerId Int
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, astrologerId])
+  @@index([userId])
 }
 
 // One row per change to a user's walletBalance, so the running total is
