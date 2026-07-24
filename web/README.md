@@ -2,8 +2,8 @@
 
 A full-stack web version of the Adi Jyotish Gurus Android app: an AI-powered
 Vedic astrology consultation platform. Built with Next.js (App Router),
-TypeScript, Tailwind CSS, Prisma + SQLite, NextAuth (Auth.js) credentials
-login, and Google's Gemini API.
+TypeScript, Tailwind CSS, Prisma + Postgres (Supabase), NextAuth (Auth.js)
+credentials login, and Google's Gemini API.
 
 The core calculation logic (Panchang almanac, subscription pricing, referral
 codes, astrologer search) is ported line-for-line from the Android app's
@@ -14,7 +14,7 @@ behaviorally consistent.
 
 - **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript**
 - **Tailwind CSS v4** with a custom dark "celestial" theme matching the Android app
-- **Prisma** + **SQLite** for persistence (no external DB needed for local dev)
+- **Prisma** + **Postgres** (via Supabase's free tier) for persistence
 - **NextAuth v5 (Auth.js)** - email/password (Credentials) login, no OAuth app registration required
 - **Firebase Auth** (optional) - adds "Continue with Google"; see below
 - **Gemini API** - called server-side only (API routes), the key never reaches the browser
@@ -27,13 +27,30 @@ behaviorally consistent.
 cd web
 npm install
 cp .env.example .env
-# Edit .env: set GEMINI_API_KEY (optional, see below) and a real AUTH_SECRET
+# Edit .env: set DATABASE_URL/DATABASE_URL_DIRECT (see "Database" below),
+# GEMINI_API_KEY (optional, see below), and a real AUTH_SECRET
 #   openssl rand -base64 32
-npm run db:push   # creates dev.db and applies the schema
+npm run db:push   # applies the schema to your Postgres database
 npm run dev
 ```
 
 Open http://localhost:3000, sign up with any email/password, and you're in.
+
+### Database (Supabase Postgres)
+
+1. Create a free project at https://supabase.com/dashboard.
+2. **Project Settings -> Database -> Connection string**: copy the
+   **Transaction pooler** string (port `6543`) into `DATABASE_URL`, and the
+   **direct connection** string (port `5432`) into `DATABASE_URL_DIRECT`.
+   The app runs on the pooled connection (serverless functions open many
+   short-lived connections); migrations/`db push` need the direct one, since
+   the pooler's transaction mode doesn't support the prepared statements
+   Prisma uses for schema changes.
+3. `npm run db:push` to create the tables.
+
+Any other managed Postgres (Neon, Railway, RDS, ...) works the same way -
+just set `DATABASE_URL` to it and drop `DATABASE_URL_DIRECT` if there's no
+separate pooler endpoint.
 
 ### Gemini API key
 
@@ -117,7 +134,7 @@ stale client can't bypass real payment with the free demo path.
 | `npm run test` | Run Vitest unit tests |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
-| `npm run db:push` | Sync `prisma/schema.prisma` to the SQLite database |
+| `npm run db:push` | Sync `prisma/schema.prisma` to the Postgres database |
 | `npm run db:studio` | Open Prisma Studio to browse the database |
 
 ## What's real vs. demo
