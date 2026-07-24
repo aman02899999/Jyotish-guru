@@ -1,11 +1,19 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 import { getCurrentUser } from "@/lib/current-user";
 import { prisma } from "@/lib/prisma";
-import { generateDailyHoroscope } from "@/lib/gemini";
+import { generateHoroscope, type HoroscopePeriod } from "@/lib/gemini";
 
-export async function POST() {
+const bodySchema = z.object({
+  period: z.enum(["daily", "weekly", "monthly"]).optional(),
+});
+
+export async function POST(request: Request) {
   const user = await getCurrentUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const parsed = bodySchema.safeParse(await request.json().catch(() => ({})));
+  const period: HoroscopePeriod = parsed.success ? (parsed.data.period ?? "daily") : "daily";
 
   const latestSession = await prisma.reportSession.findFirst({
     where: {
@@ -24,13 +32,14 @@ export async function POST() {
     });
   }
 
-  const horoscope = await generateDailyHoroscope(
+  const horoscope = await generateHoroscope(
     user.name,
     latestSession.gender,
     latestSession.dob,
     latestSession.tob,
     latestSession.pob,
-    user.preferredLanguage
+    user.preferredLanguage,
+    period
   );
 
   return NextResponse.json({ horoscope });

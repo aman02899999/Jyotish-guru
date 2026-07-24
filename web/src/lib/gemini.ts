@@ -196,39 +196,59 @@ export async function generateFollowUpResponse(req: FollowUpRequest): Promise<st
   return generateContent(prompt, systemInstruction);
 }
 
-export async function generateDailyHoroscope(
+export type HoroscopePeriod = "daily" | "weekly" | "monthly";
+
+function describeForecastRange(period: HoroscopePeriod): string {
+  const today = new Date();
+  if (period === "weekly") {
+    const end = new Date(today);
+    end.setDate(end.getDate() + 6);
+    return `${today.toISOString().slice(0, 10)} to ${end.toISOString().slice(0, 10)}`;
+  }
+  if (period === "monthly") {
+    return today.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  }
+  return today.toISOString().slice(0, 10);
+}
+
+export async function generateHoroscope(
   userName: string,
   gender: string,
   dob: string,
   tob: string,
   pob: string,
-  language: string
+  language: string,
+  period: HoroscopePeriod = "daily"
 ): Promise<string> {
-  const today = new Date().toISOString().slice(0, 10);
+  const periodWord = period === "daily" ? "daily" : period === "weekly" ? "weekly" : "monthly";
+  const periodNoun = period === "weekly" ? "week" : period === "monthly" ? "month" : "day";
+
   const prompt = [
-    "Please generate a highly personalized, authentic Vedic daily horoscope for:",
+    `Please generate a highly personalized, authentic Vedic ${periodWord} horoscope for:`,
     `- Name: ${userName}`,
     `- Gender: ${gender}`,
     `- Date of Birth: ${dob}`,
     `- Time of Birth: ${tob}`,
     `- Place of Birth: ${pob}`,
-    `- Current Date: ${today}`,
+    `- Forecast Period: ${describeForecastRange(period)}`,
     "",
     "Instructions:",
     "1. Start with a warm, caring greeting from 'Adi Jyotish Gurus'. Mention their Moon sign or Ascendant computed from their birth details to make it deeply custom.",
-    "2. Provide today's general lunar energy / cosmic mood.",
-    "3. Organize today's personalized forecast into three clear sections with beautiful headers and relevant emojis: Career & Focus, Relationship & Connection, Health & Inner Peace (Sukha).",
-    "4. Conclude with three custom-derived lucky daily factors: Favorable Mantra of the Day, Lucky Color of the Day, Auspicious Hour of the Day.",
+    `2. Provide the general lunar/planetary energy and cosmic mood for this ${periodNoun}.`,
+    `3. Organize the forecast for this ${periodNoun} into three clear sections with beautiful headers and relevant emojis: Career & Focus, Relationship & Connection, Health & Inner Peace (Sukha).`,
+    period === "daily"
+      ? "4. Conclude with three custom-derived lucky daily factors: Favorable Mantra of the Day, Lucky Color of the Day, Auspicious Hour of the Day."
+      : `4. Conclude by naming the single most important date within this ${periodNoun} to watch, and why.`,
     "5. Keep the tone traditional, warm, supportive, and grounded in Vedic tradition. Never make absolute claims or fatalistic guarantees.",
     "",
     "Language Preferences:",
     `- Target Language: ${language}`,
     language.toLowerCase() === "hinglish"
-      ? "- IMPORTANT: Write the entire daily horoscope in natural Hinglish, mixing Hindi and English words organically."
-      : `- IMPORTANT: Translate and write the entire daily horoscope strictly in ${language}.`,
+      ? "- IMPORTANT: Write the entire horoscope in natural Hinglish, mixing Hindi and English words organically."
+      : `- IMPORTANT: Translate and write the entire horoscope strictly in ${language}.`,
   ].join("\n");
 
-  const systemInstruction = `You are a warm, traditional Vedic astrologer representing 'Adi Jyotish Gurus', who guides seekers with compassion and absolute precision. Provide deeply personalized daily insights derived from birth parameters in the language ${language}.`;
+  const systemInstruction = `You are a warm, traditional Vedic astrologer representing 'Adi Jyotish Gurus', who guides seekers with compassion and absolute precision. Provide deeply personalized ${periodWord} insights derived from birth parameters in the language ${language}.`;
 
   return generateContent(prompt, systemInstruction);
 }
