@@ -8,6 +8,8 @@ import { Button, buttonVariants } from "@/components/ui/button";
 
 const NAV_LINKS = [
   { href: "/dashboard", label: "Consult" },
+  { href: "/compatibility", label: "Kundli Milan" },
+  { href: "/muhurat", label: "Muhurat" },
   { href: "/reports", label: "My Reports" },
   { href: "/profile", label: "Profile" },
 ];
