@@ -42,10 +42,10 @@ export function DailyHoroscopeCard() {
         </Button>
       </div>
 
-      {error && <p className="px-5 pb-4 text-xs text-red-400">{error}</p>}
+      {error && <p className="px-5 pb-4 text-xs text-red-600">{error}</p>}
 
       {horoscope && (
-        <div className="border-t border-white/5 px-5 py-4">
+        <div className="border-t border-clay/15 px-5 py-4">
           <p className="whitespace-pre-line text-sm leading-relaxed text-ink">{horoscope}</p>
         </div>
       )}

@@ -7,9 +7,9 @@ import { findMuhuratWindow, ACTIVITY_TYPES, type MuhuratRating } from "@/lib/muh
 const today = new Date().toISOString().slice(0, 10);
 
 const RATING_STYLES: Record<MuhuratRating, string> = {
-  "Highly Auspicious": "border-emerald-500/40 bg-emerald-500/10 text-emerald-300",
+  "Highly Auspicious": "border-emerald-500/40 bg-emerald-500/10 text-emerald-700",
   Auspicious: "border-saffron/40 bg-saffron/10 text-saffron",
-  "Use Caution": "border-red-500/30 bg-red-500/10 text-red-300",
+  "Use Caution": "border-red-500/30 bg-red-500/10 text-red-700",
 };
 
 export function MuhuratFinder() {

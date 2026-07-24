@@ -5,8 +5,8 @@ export function Card({ className, ...props }: React.HTMLAttributes<HTMLDivElemen
   return (
     <div
       className={cn(
-        "rounded-2xl border border-saffron/20 bg-paper/60 backdrop-blur-sm",
-        "shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_20px_50px_-20px_rgba(42,27,18,0.12)]",
+        "rounded-2xl border border-saffron/20 bg-paper/80 backdrop-blur-sm",
+        "shadow-[0_1px_0_0_rgba(255,255,255,0.8),0_20px_50px_-20px_rgba(42,27,18,0.14)]",
         "transition-shadow duration-300",
         className
       )}

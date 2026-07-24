@@ -123,7 +123,7 @@ export function ReportView({ session }: { session: ReportSession }) {
               onChange={(e) => setFollowUpText(e.target.value)}
               placeholder="Ask your follow-up..."
             />
-            {followUpError && <p className="text-xs text-red-400">{followUpError}</p>}
+            {followUpError && <p className="text-xs text-red-600">{followUpError}</p>}
             <Button
               type="submit"
               className="w-full"
@@ -138,7 +138,7 @@ export function ReportView({ session }: { session: ReportSession }) {
               <p className="text-xs font-bold text-rust">Your Question:</p>
               <p className="mt-1 text-sm text-ink">{session.followUpQuestion}</p>
             </div>
-            <div className="border-t border-white/5 pt-3">
+            <div className="border-t border-clay/15 pt-3">
               <p className="text-xs font-bold text-saffron">Astrologer&apos;s Response:</p>
               <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-ink">
                 {session.followUpResponse}

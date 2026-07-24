@@ -25,7 +25,7 @@ export default async function AstrologerDetailPage({ params }: { params: Promise
           <p className="text-xs font-semibold text-saffron">{astrologer.specialty}</p>
           <p className="mt-1 text-xs text-clay">
             {price === 0 ? (
-              <span className="font-bold text-emerald-400">Free with your {user.subscriptionTier} plan</span>
+              <span className="font-bold text-emerald-600">Free with your {user.subscriptionTier} plan</span>
             ) : (
               <>
                 ₹{price}

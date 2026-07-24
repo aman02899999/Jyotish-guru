@@ -45,7 +45,7 @@ export function PanchangCard({ initial }: { initial: Panchang }) {
           <button
             type="button"
             onClick={() => goToDate(shiftDate(panchang.date, -1))}
-            className="rounded-full p-1.5 text-saffron hover:bg-white/5"
+            className="rounded-full p-1.5 text-saffron hover:bg-ink/5"
             aria-label="Previous day"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -61,7 +61,7 @@ export function PanchangCard({ initial }: { initial: Panchang }) {
           <button
             type="button"
             onClick={() => goToDate(shiftDate(panchang.date, 1))}
-            className="rounded-full p-1.5 text-saffron hover:bg-white/5"
+            className="rounded-full p-1.5 text-saffron hover:bg-ink/5"
             aria-label="Next day"
           >
             <ChevronRight className="h-4 w-4" />
@@ -92,7 +92,7 @@ export function PanchangCard({ initial }: { initial: Panchang }) {
 
 function PanchangStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-cream p-2.5">
+    <div className="rounded-xl border border-clay/15 bg-cream p-2.5">
       <p className="text-[10px] text-clay">{label}</p>
       <p className={`mt-0.5 text-xs font-bold ${accent ? "text-rust" : "text-ink"}`}>{value}</p>
     </div>

@@ -44,7 +44,7 @@ export function GoogleSignInButton({ callbackUrl = "/dashboard" }: { callbackUrl
         <GoogleIcon />
         {isSubmitting ? "Connecting..." : "Continue with Google"}
       </Button>
-      {error && <p className="text-center text-xs text-red-400">{error}</p>}
+      {error && <p className="text-center text-xs text-red-600">{error}</p>}
     </div>
   );
 }

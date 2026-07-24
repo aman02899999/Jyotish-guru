@@ -8,7 +8,7 @@ export function AstrologerCard({ astrologer }: { astrologer: AstrologerWithStats
   return (
     <Link href={`/astrologer/${astrologer.id}`}>
       <TiltCard>
-        <Card className="group flex h-full flex-col gap-3 p-4 transition-shadow duration-300 hover:border-saffron/50 hover:shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_24px_50px_-16px_rgba(234,88,12,0.25)]">
+        <Card className="group flex h-full flex-col gap-3 p-4 transition-shadow duration-300 hover:border-saffron/50 hover:shadow-[0_1px_0_0_rgba(255,255,255,0.8),0_24px_50px_-16px_rgba(234,88,12,0.25)]">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-saffron/40 bg-gradient-to-br from-paper to-sand text-2xl shadow-[0_0_16px_-6px_rgba(234,88,12,0.5)] transition-transform duration-300 group-hover:scale-105">

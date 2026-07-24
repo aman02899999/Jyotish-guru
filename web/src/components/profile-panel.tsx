@@ -99,7 +99,7 @@ export function ProfilePanel({
       {(error || message) && (
         <p
           className={`rounded-lg border px-3 py-2 text-xs ${
-            error ? "border-red-500/30 bg-red-500/10 text-red-400" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
+            error ? "border-red-500/30 bg-red-500/10 text-red-600" : "border-emerald-500/30 bg-emerald-500/10 text-emerald-700"
           }`}
         >
           {error ?? message}
@@ -125,7 +125,7 @@ export function ProfilePanel({
           <Card className="border-2 border-saffron p-5">
             <div className="flex items-center justify-between">
               <p className="text-lg font-bold text-saffron">{user.subscriptionTier}</p>
-              <span className="rounded-md bg-emerald-500/20 px-2 py-1 text-[10px] font-bold text-emerald-400">
+              <span className="rounded-md bg-emerald-500/20 px-2 py-1 text-[10px] font-bold text-emerald-600">
                 ACTIVE
               </span>
             </div>

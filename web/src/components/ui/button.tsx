@@ -11,8 +11,8 @@ const buttonVariants = cva(
           "bg-gradient-to-b from-[#fdba74] via-saffron to-terracotta text-ink shadow-[0_10px_25px_-8px_rgba(234,88,12,0.55)] hover:shadow-[0_14px_32px_-8px_rgba(234,88,12,0.75)] hover:-translate-y-0.5 active:translate-y-0 active:shadow-[0_6px_16px_-8px_rgba(234,88,12,0.6)]",
         outline:
           "border border-saffron/40 text-saffron hover:bg-saffron/10 hover:border-saffron/70 hover:shadow-[0_0_24px_-6px_rgba(234,88,12,0.45)]",
-        ghost: "text-clay hover:bg-white/5 hover:text-ink",
-        destructive: "border border-red-500/40 text-red-400 hover:bg-red-500/10",
+        ghost: "text-clay hover:bg-ink/5 hover:text-ink",
+        destructive: "border border-red-500/40 text-red-600 hover:bg-red-500/10",
       },
       size: {
         default: "h-11 px-6",

@@ -45,7 +45,7 @@ export function NumerologyCard({ userName }: { userName: string }) {
       </form>
 
       {profile && (
-        <div className="mt-4 space-y-3 border-t border-white/5 pt-4">
+        <div className="mt-4 space-y-3 border-t border-clay/15 pt-4">
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-xl border border-saffron/20 bg-cream p-3 text-center">
               <p className="text-[10px] text-clay">Life Path Number</p>
