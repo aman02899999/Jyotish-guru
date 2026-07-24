@@ -25,7 +25,7 @@ export function AstrologerBrowser({ astrologers }: { astrologers: AstrologerWith
   return (
     <div>
       <div className="relative">
-        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-celestial-gold" />
+        <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-saffron" />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -36,7 +36,7 @@ export function AstrologerBrowser({ astrologers }: { astrologers: AstrologerWith
           <button
             type="button"
             onClick={() => setQuery("")}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-space-lavender hover:text-galactic-white"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-clay hover:text-ink"
             aria-label="Clear search"
           >
             <X className="h-4 w-4" />
@@ -51,8 +51,8 @@ export function AstrologerBrowser({ astrologers }: { astrologers: AstrologerWith
           className={cn(
             "rounded-full border px-3 py-1.5 text-xs font-bold",
             specialty === null
-              ? "border-celestial-gold bg-celestial-gold text-deep-midnight"
-              : "border-space-lavender/30 text-space-lavender hover:border-celestial-gold/50"
+              ? "border-saffron bg-saffron text-ink"
+              : "border-clay/30 text-clay hover:border-saffron/50"
           )}
         >
           All
@@ -65,8 +65,8 @@ export function AstrologerBrowser({ astrologers }: { astrologers: AstrologerWith
             className={cn(
               "rounded-full border px-3 py-1.5 text-xs font-bold",
               specialty === s
-                ? "border-celestial-gold bg-celestial-gold text-deep-midnight"
-                : "border-space-lavender/30 text-space-lavender hover:border-celestial-gold/50"
+                ? "border-saffron bg-saffron text-ink"
+                : "border-clay/30 text-clay hover:border-saffron/50"
             )}
           >
             {s}
@@ -77,7 +77,7 @@ export function AstrologerBrowser({ astrologers }: { astrologers: AstrologerWith
       {filtered.length === 0 ? (
         <div className="mt-10 flex flex-col items-center gap-2 py-10 text-center">
           <span className="text-3xl">🔍</span>
-          <p className="text-sm text-space-lavender">No astrologers match your search.</p>
+          <p className="text-sm text-clay">No astrologers match your search.</p>
         </div>
       ) : (
         <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">

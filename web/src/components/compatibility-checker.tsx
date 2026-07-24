@@ -43,36 +43,36 @@ export function CompatibilityChecker() {
 
       {result && (
         <>
-          <Card className="border-2 border-celestial-gold/40 p-6 text-center">
-            <p className="text-xs font-bold text-space-lavender">
+          <Card className="border-2 border-saffron/40 p-6 text-center">
+            <p className="text-xs font-bold text-clay">
               {moonNakshatraName(dob1)} &amp; {moonNakshatraName(dob2)} Moon Nakshatras
             </p>
-            <p className="mt-3 text-5xl font-black text-celestial-gold">
+            <p className="mt-3 text-5xl font-black text-saffron">
               {result.totalPoints}
-              <span className="text-2xl text-space-lavender">/{result.maxPoints}</span>
+              <span className="text-2xl text-clay">/{result.maxPoints}</span>
             </p>
-            <div className="mx-auto mt-3 h-2 w-full max-w-xs overflow-hidden rounded-full bg-deep-midnight">
-              <div className="h-full rounded-full bg-celestial-gold" style={{ width: `${scorePercent}%` }} />
+            <div className="mx-auto mt-3 h-2 w-full max-w-xs overflow-hidden rounded-full bg-cream">
+              <div className="h-full rounded-full bg-saffron" style={{ width: `${scorePercent}%` }} />
             </div>
-            <p className="mt-4 text-sm font-bold text-galactic-white">{result.verdict}</p>
+            <p className="mt-4 text-sm font-bold text-ink">{result.verdict}</p>
           </Card>
 
           <div className="space-y-2">
             {result.kootas.map((koota) => (
               <Card key={koota.name} className="flex items-center justify-between p-4">
                 <div>
-                  <p className="text-sm font-bold text-galactic-white">{koota.name}</p>
-                  <p className="text-xs text-space-lavender">{koota.description}</p>
+                  <p className="text-sm font-bold text-ink">{koota.name}</p>
+                  <p className="text-xs text-clay">{koota.description}</p>
                 </div>
-                <p className="shrink-0 pl-4 text-lg font-black text-celestial-gold">
+                <p className="shrink-0 pl-4 text-lg font-black text-saffron">
                   {koota.points}
-                  <span className="text-xs text-space-lavender">/{koota.maxPoints}</span>
+                  <span className="text-xs text-clay">/{koota.maxPoints}</span>
                 </p>
               </Card>
             ))}
           </div>
 
-          <p className="text-center text-[10px] text-space-lavender/60">
+          <p className="text-center text-[10px] text-clay/60">
             Approximate Ashtakoot Guna Milan, for guidance and entertainment only - not a substitute for a full
             consultation with a professional astrologer before making marriage decisions.
           </p>

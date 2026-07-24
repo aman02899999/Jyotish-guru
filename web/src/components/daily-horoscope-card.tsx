@@ -33,8 +33,8 @@ export function DailyHoroscopeCard() {
         <div className="flex items-center gap-2">
           <span className="text-2xl">🔮</span>
           <div>
-            <p className="font-bold text-celestial-gold">Daily Vedic Rashifal</p>
-            <p className="text-xs text-space-lavender">Your transit alignment for today</p>
+            <p className="font-bold text-saffron">Daily Vedic Rashifal</p>
+            <p className="text-xs text-clay">Your transit alignment for today</p>
           </div>
         </div>
         <Button size="sm" variant="outline" onClick={fetchHoroscope} disabled={isLoading}>
@@ -46,7 +46,7 @@ export function DailyHoroscopeCard() {
 
       {horoscope && (
         <div className="border-t border-white/5 px-5 py-4">
-          <p className="whitespace-pre-line text-sm leading-relaxed text-galactic-white">{horoscope}</p>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-ink">{horoscope}</p>
         </div>
       )}
     </Card>

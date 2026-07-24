@@ -62,8 +62,8 @@ export function ReportView({ session }: { session: ReportSession }) {
     <div className="space-y-6">
       <div className="no-print flex items-center justify-between">
         <div>
-          <h1 className="font-display text-lg font-semibold tracking-wide text-galactic-white">Your Consultation</h1>
-          <p className="text-xs text-celestial-gold">
+          <h1 className="font-display text-lg font-semibold tracking-wide text-ink">Your Consultation</h1>
+          <p className="text-xs text-saffron">
             {session.astrologerName} · {session.specialty}
           </p>
         </div>
@@ -76,15 +76,15 @@ export function ReportView({ session }: { session: ReportSession }) {
 
       <Card>
         <CardContent className="pt-5">
-          <h2 className="font-display mb-4 text-lg font-semibold tracking-wide text-celestial-gold">
+          <h2 className="font-display mb-4 text-lg font-semibold tracking-wide text-saffron">
             Vedic Reading &amp; Kundli Analysis
           </h2>
-          <p className="whitespace-pre-line text-sm leading-relaxed text-galactic-white">{session.reportText}</p>
+          <p className="whitespace-pre-line text-sm leading-relaxed text-ink">{session.reportText}</p>
         </CardContent>
       </Card>
 
       <Card className="no-print p-5 text-center">
-        <p className="text-sm font-bold text-celestial-gold">
+        <p className="text-sm font-bold text-saffron">
           {session.rating === null ? "Rate your consultation session" : "Your Rating"}
         </p>
         <div className="mt-3 flex justify-center gap-2">
@@ -98,21 +98,21 @@ export function ReportView({ session }: { session: ReportSession }) {
               aria-label={`Rate ${star} stars`}
             >
               <Star
-                className={`h-7 w-7 ${star <= rating ? "fill-celestial-gold text-celestial-gold" : "text-space-lavender/40"}`}
+                className={`h-7 w-7 ${star <= rating ? "fill-saffron text-saffron" : "text-clay/40"}`}
               />
             </button>
           ))}
         </div>
         {session.rating !== null && (
-          <p className="mt-2 text-xs text-space-lavender">
+          <p className="mt-2 text-xs text-clay">
             Thank you! Your feedback helps other seekers and refines our astrologer standings.
           </p>
         )}
       </Card>
 
       <Card className="p-5">
-        <p className="flex items-center gap-2 text-sm font-bold text-astral-rose">💬 Included Follow-Up Question</p>
-        <p className="mt-1 text-xs text-space-lavender">
+        <p className="flex items-center gap-2 text-sm font-bold text-rust">💬 Included Follow-Up Question</p>
+        <p className="mt-1 text-xs text-clay">
           You&apos;re entitled to ask exactly 1 follow-up question referencing this chart, included in your consultation fee.
         </p>
 
@@ -133,14 +133,14 @@ export function ReportView({ session }: { session: ReportSession }) {
             </Button>
           </form>
         ) : (
-          <div className="mt-4 space-y-3 rounded-xl bg-deep-midnight p-4">
+          <div className="mt-4 space-y-3 rounded-xl bg-cream p-4">
             <div>
-              <p className="text-xs font-bold text-astral-rose">Your Question:</p>
-              <p className="mt-1 text-sm text-galactic-white">{session.followUpQuestion}</p>
+              <p className="text-xs font-bold text-rust">Your Question:</p>
+              <p className="mt-1 text-sm text-ink">{session.followUpQuestion}</p>
             </div>
             <div className="border-t border-white/5 pt-3">
-              <p className="text-xs font-bold text-celestial-gold">Astrologer&apos;s Response:</p>
-              <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-galactic-white">
+              <p className="text-xs font-bold text-saffron">Astrologer&apos;s Response:</p>
+              <p className="mt-1 whitespace-pre-line text-sm leading-relaxed text-ink">
                 {session.followUpResponse}
               </p>
             </div>

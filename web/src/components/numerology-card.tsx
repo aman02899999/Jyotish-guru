@@ -24,8 +24,8 @@ export function NumerologyCard({ userName }: { userName: string }) {
       <div className="flex items-center gap-2">
         <span className="text-2xl">🔢</span>
         <div>
-          <p className="font-bold text-celestial-gold">Numerology Insights</p>
-          <p className="text-xs text-space-lavender">Discover your Life Path &amp; Destiny numbers</p>
+          <p className="font-bold text-saffron">Numerology Insights</p>
+          <p className="text-xs text-clay">Discover your Life Path &amp; Destiny numbers</p>
         </div>
       </div>
 
@@ -47,32 +47,32 @@ export function NumerologyCard({ userName }: { userName: string }) {
       {profile && (
         <div className="mt-4 space-y-3 border-t border-white/5 pt-4">
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-celestial-gold/20 bg-deep-midnight p-3 text-center">
-              <p className="text-[10px] text-space-lavender">Life Path Number</p>
-              <p className="text-2xl font-black text-celestial-gold">{profile.lifePathNumber}</p>
+            <div className="rounded-xl border border-saffron/20 bg-cream p-3 text-center">
+              <p className="text-[10px] text-clay">Life Path Number</p>
+              <p className="text-2xl font-black text-saffron">{profile.lifePathNumber}</p>
             </div>
-            <div className="rounded-xl border border-astral-rose/20 bg-deep-midnight p-3 text-center">
-              <p className="text-[10px] text-space-lavender">Destiny Number</p>
-              <p className="text-2xl font-black text-astral-rose">{profile.destinyNumber}</p>
+            <div className="rounded-xl border border-rust/20 bg-cream p-3 text-center">
+              <p className="text-[10px] text-clay">Destiny Number</p>
+              <p className="text-2xl font-black text-rust">{profile.destinyNumber}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-lg bg-deep-midnight p-2">
-              <p className="text-[9px] text-space-lavender">Ruling Planet</p>
-              <p className="text-[11px] font-bold text-galactic-white">{profile.rulingPlanet}</p>
+            <div className="rounded-lg bg-cream p-2">
+              <p className="text-[9px] text-clay">Ruling Planet</p>
+              <p className="text-[11px] font-bold text-ink">{profile.rulingPlanet}</p>
             </div>
-            <div className="rounded-lg bg-deep-midnight p-2">
-              <p className="text-[9px] text-space-lavender">Lucky Day</p>
-              <p className="text-[11px] font-bold text-galactic-white">{profile.luckyDay}</p>
+            <div className="rounded-lg bg-cream p-2">
+              <p className="text-[9px] text-clay">Lucky Day</p>
+              <p className="text-[11px] font-bold text-ink">{profile.luckyDay}</p>
             </div>
-            <div className="rounded-lg bg-deep-midnight p-2">
-              <p className="text-[9px] text-space-lavender">Lucky Color</p>
-              <p className="text-[11px] font-bold text-galactic-white">{profile.luckyColor}</p>
+            <div className="rounded-lg bg-cream p-2">
+              <p className="text-[9px] text-clay">Lucky Color</p>
+              <p className="text-[11px] font-bold text-ink">{profile.luckyColor}</p>
             </div>
           </div>
 
-          <p className="rounded-xl border border-celestial-gold/15 bg-soft-plum p-3 text-xs leading-relaxed text-space-lavender">
+          <p className="rounded-xl border border-saffron/15 bg-paper p-3 text-xs leading-relaxed text-clay">
             {profile.traits}
           </p>
         </div>

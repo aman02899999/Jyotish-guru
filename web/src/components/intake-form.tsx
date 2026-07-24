@@ -70,8 +70,8 @@ export function IntakeForm({ astrologerId, specialty }: { astrologerId: number; 
     return (
       <Card className="flex flex-col items-center gap-4 p-10 text-center">
         <span className="animate-pulse text-5xl">🔮</span>
-        <p className="text-lg font-bold text-celestial-gold">Consulting the Heavens...</p>
-        <p className="text-xs text-space-lavender">
+        <p className="text-lg font-bold text-saffron">Consulting the Heavens...</p>
+        <p className="text-xs text-clay">
           Calibrating your chart and generating a personalized reading. This can take up to a minute.
         </p>
       </Card>
@@ -131,8 +131,8 @@ export function IntakeForm({ astrologerId, specialty }: { astrologerId: number; 
           </div>
 
           {isMarriageMatching && (
-            <div className="space-y-4 rounded-xl border border-astral-rose/25 bg-soft-plum/60 p-4">
-              <p className="flex items-center gap-2 text-sm font-bold text-astral-rose">
+            <div className="space-y-4 rounded-xl border border-rust/25 bg-paper/60 p-4">
+              <p className="flex items-center gap-2 text-sm font-bold text-rust">
                 💑 Partner&apos;s Birth Details
               </p>
               <div>

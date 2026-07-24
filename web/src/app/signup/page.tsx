@@ -58,7 +58,7 @@ export default function SignupPage() {
     <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md items-center px-4 py-12">
       <Card className="w-full">
         <CardHeader className="text-center">
-          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-celestial-gold/40 bg-gradient-to-br from-celestial-gold/20 via-soft-plum to-transparent text-3xl shadow-[0_0_30px_-6px_rgba(212,175,55,0.55)]">
+          <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border border-saffron/40 bg-gradient-to-br from-saffron/20 via-paper to-transparent text-3xl shadow-[0_0_30px_-6px_rgba(234,88,12,0.55)]">
             ✨
           </span>
           <CardTitle className="mt-3 text-xl">Begin Your Journey</CardTitle>
@@ -69,9 +69,9 @@ export default function SignupPage() {
             <>
               <GoogleSignInButton />
               <div className="my-5 flex items-center gap-3">
-                <div className="h-px flex-1 bg-space-lavender/15" />
-                <span className="text-[10px] font-bold text-space-lavender/60">OR</span>
-                <div className="h-px flex-1 bg-space-lavender/15" />
+                <div className="h-px flex-1 bg-clay/15" />
+                <span className="text-[10px] font-bold text-clay/60">OR</span>
+                <div className="h-px flex-1 bg-clay/15" />
               </div>
             </>
           )}
@@ -124,13 +124,13 @@ export default function SignupPage() {
             </Button>
           </form>
 
-          <p className="mt-6 text-center text-xs text-space-lavender">
+          <p className="mt-6 text-center text-xs text-clay">
             Already have an account?{" "}
-            <Link href="/login" className="font-bold text-celestial-gold hover:underline">
+            <Link href="/login" className="font-bold text-saffron hover:underline">
               Log in
             </Link>
           </p>
-          <p className="mt-4 text-center text-[10px] leading-relaxed text-space-lavender/70">
+          <p className="mt-4 text-center text-[10px] leading-relaxed text-clay/70">
             By continuing you consent to receiving AI-generated astrological interpretations for
             guidance and entertainment purposes only.
           </p>

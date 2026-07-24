@@ -30,8 +30,8 @@ export function ChipSelect({
             className={cn(
               "rounded-lg border px-3 py-2 text-xs font-bold transition-colors",
               isSelected
-                ? "border-celestial-gold bg-celestial-gold text-deep-midnight"
-                : "border-space-lavender/30 bg-soft-plum/50 text-space-lavender hover:border-celestial-gold/50"
+                ? "border-saffron bg-saffron text-ink"
+                : "border-clay/30 bg-paper/50 text-clay hover:border-saffron/50"
             )}
           >
             {option.label}

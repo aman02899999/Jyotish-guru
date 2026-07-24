@@ -104,7 +104,7 @@ export function RazorpayCheckoutButton({
         description: orderData.description,
         order_id: orderData.orderId,
         prefill: orderData.prefill,
-        theme: { color: "#D4AF37" },
+        theme: { color: "#EA580C" },
         handler: (response) => {
           void (async () => {
             try {

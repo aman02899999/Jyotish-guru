@@ -42,20 +42,20 @@ export function BirthChart({ dob, tob }: { dob: string; tob: string }) {
 
   return (
     <Card className="p-5">
-      <p className="font-display mb-1 text-sm font-bold text-celestial-gold">Your Birth Chart (Rashi Kundli)</p>
-      <p className="mb-4 text-xs text-space-lavender">
-        Ascendant (Lagna): <span className="text-galactic-white">{RASHI_NAMES[chart.ascendantSignIndex]}</span> (
+      <p className="font-display mb-1 text-sm font-bold text-saffron">Your Birth Chart (Rashi Kundli)</p>
+      <p className="mb-4 text-xs text-clay">
+        Ascendant (Lagna): <span className="text-ink">{RASHI_NAMES[chart.ascendantSignIndex]}</span> (
         {RASHI_ENGLISH_NAMES[chart.ascendantSignIndex]})
       </p>
 
       <div className="flex justify-center">
         <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} role="img" aria-label="Vedic birth chart">
-          <rect x={0} y={0} width={size} height={size} rx={12} className="fill-deep-midnight" />
+          <rect x={0} y={0} width={size} height={size} rx={12} className="fill-cream" />
           {Object.entries(HOUSE_POLYGONS).map(([houseNumber, points]) => (
             <polygon
               key={houseNumber}
               points={points.map(([x, y]) => `${x * size},${y * size}`).join(" ")}
-              className="fill-transparent stroke-celestial-gold/40"
+              className="fill-transparent stroke-saffron/40"
               strokeWidth={1}
             />
           ))}
@@ -69,12 +69,12 @@ export function BirthChart({ dob, tob }: { dob: string; tob: string }) {
                   x={ax * size}
                   y={ay * size - (planets.length > 0 ? 10 : 0)}
                   textAnchor="middle"
-                  className="fill-space-lavender/70 text-[9px]"
+                  className="fill-clay/70 text-[9px]"
                 >
                   {house.signIndex + 1}
                 </text>
                 {planets.length > 0 && (
-                  <text x={ax * size} y={ay * size + 4} textAnchor="middle" className="fill-celestial-gold text-[11px] font-semibold">
+                  <text x={ax * size} y={ay * size + 4} textAnchor="middle" className="fill-saffron text-[11px] font-semibold">
                     <title>{planets.map((p) => p.name).join(", ")}</title>
                     {planets.map((p) => p.symbol).join(" ")}
                   </text>
@@ -85,17 +85,17 @@ export function BirthChart({ dob, tob }: { dob: string; tob: string }) {
         </svg>
       </div>
 
-      <p className="mt-3 text-center text-[10px] text-space-lavender/60">
+      <p className="mt-3 text-center text-[10px] text-clay/60">
         Numbers show each house&apos;s Rashi (1=Mesha/Aries .. 12=Meena/Pisces). Symbols show your grahas.
       </p>
 
       <div className="mt-4 grid grid-cols-3 gap-2 sm:grid-cols-3">
         {chart.placements.map((p) => (
-          <div key={p.key} className="rounded-lg bg-deep-midnight px-2 py-1.5 text-center">
-            <p className="text-[10px] font-bold text-celestial-gold">
+          <div key={p.key} className="rounded-lg bg-cream px-2 py-1.5 text-center">
+            <p className="text-[10px] font-bold text-saffron">
               {p.symbol} {p.name}
             </p>
-            <p className="text-[9px] text-space-lavender">
+            <p className="text-[9px] text-clay">
               {RASHI_ENGLISH_NAMES[p.signIndex]} {p.degreeInSign.toFixed(1)}°
             </p>
           </div>

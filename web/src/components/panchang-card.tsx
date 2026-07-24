@@ -37,15 +37,15 @@ export function PanchangCard({ initial }: { initial: Panchang }) {
         <div className="flex items-center gap-2">
           <span className="text-2xl">📅</span>
           <div>
-            <p className="font-bold text-celestial-gold">Vedic Panchang Calendar</p>
-            <p className="text-xs text-space-lavender">Daily celestial timeline &amp; sacred timings</p>
+            <p className="font-bold text-saffron">Vedic Panchang Calendar</p>
+            <p className="text-xs text-clay">Daily celestial timeline &amp; sacred timings</p>
           </div>
         </div>
         <div className="flex items-center gap-1">
           <button
             type="button"
             onClick={() => goToDate(shiftDate(panchang.date, -1))}
-            className="rounded-full p-1.5 text-celestial-gold hover:bg-white/5"
+            className="rounded-full p-1.5 text-saffron hover:bg-white/5"
             aria-label="Previous day"
           >
             <ChevronLeft className="h-4 w-4" />
@@ -54,14 +54,14 @@ export function PanchangCard({ initial }: { initial: Panchang }) {
             type="button"
             onClick={() => goToDate(today)}
             disabled={panchang.date === today}
-            className="rounded-lg border border-celestial-gold/40 bg-celestial-gold/10 px-2 py-1 text-[10px] font-bold text-celestial-gold disabled:opacity-60"
+            className="rounded-lg border border-saffron/40 bg-saffron/10 px-2 py-1 text-[10px] font-bold text-saffron disabled:opacity-60"
           >
             {panchang.date}
           </button>
           <button
             type="button"
             onClick={() => goToDate(shiftDate(panchang.date, 1))}
-            className="rounded-full p-1.5 text-celestial-gold hover:bg-white/5"
+            className="rounded-full p-1.5 text-saffron hover:bg-white/5"
             aria-label="Next day"
           >
             <ChevronRight className="h-4 w-4" />
@@ -78,10 +78,10 @@ export function PanchangCard({ initial }: { initial: Panchang }) {
           <PanchangStat label="Sunrise / Sunset" value={`${panchang.sunrise} / ${panchang.sunset}`} />
           <PanchangStat label="Rahu Kaal (⚡)" value={panchang.rahuKaal} accent />
         </div>
-        <div className="rounded-xl border border-celestial-gold/15 bg-soft-plum p-3">
-          <p className="mb-1 text-xs font-bold text-celestial-gold">✨ Today&apos;s Significance</p>
+        <div className="rounded-xl border border-saffron/15 bg-paper p-3">
+          <p className="mb-1 text-xs font-bold text-saffron">✨ Today&apos;s Significance</p>
           <p
-            className="text-xs leading-relaxed text-space-lavender"
+            className="text-xs leading-relaxed text-clay"
             dangerouslySetInnerHTML={{ __html: panchang.explanation.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>") }}
           />
         </div>
@@ -92,9 +92,9 @@ export function PanchangCard({ initial }: { initial: Panchang }) {
 
 function PanchangStat({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rounded-xl border border-white/5 bg-deep-midnight p-2.5">
-      <p className="text-[10px] text-space-lavender">{label}</p>
-      <p className={`mt-0.5 text-xs font-bold ${accent ? "text-astral-rose" : "text-galactic-white"}`}>{value}</p>
+    <div className="rounded-xl border border-white/5 bg-cream p-2.5">
+      <p className="text-[10px] text-clay">{label}</p>
+      <p className={`mt-0.5 text-xs font-bold ${accent ? "text-rust" : "text-ink"}`}>{value}</p>
     </div>
   );
 }

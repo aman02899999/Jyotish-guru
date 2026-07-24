@@ -19,13 +19,13 @@ export function SiteHeader() {
   const { data, status } = useSession();
 
   return (
-    <header className="no-print sticky top-0 z-40 border-b border-celestial-gold/10 bg-deep-midnight/75 shadow-[0_1px_0_0_rgba(212,175,55,0.08),0_12px_24px_-16px_rgba(0,0,0,0.8)] backdrop-blur-md">
+    <header className="no-print sticky top-0 z-40 border-b border-saffron/10 bg-cream/75 shadow-[0_1px_0_0_rgba(234,88,12,0.08),0_12px_24px_-16px_rgba(42,27,18,0.15)] backdrop-blur-md">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
         <Link href={data ? "/dashboard" : "/"} className="group flex items-center gap-2.5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-celestial-gold/40 bg-gradient-to-br from-celestial-gold/20 to-transparent text-base shadow-[0_0_16px_-4px_rgba(212,175,55,0.5)] transition-transform group-hover:scale-105">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-saffron/40 bg-gradient-to-br from-saffron/20 to-transparent text-base shadow-[0_0_16px_-4px_rgba(234,88,12,0.5)] transition-transform group-hover:scale-105">
             🕉️
           </span>
-          <span className="font-display text-lg font-semibold tracking-wide text-celestial-gold">
+          <span className="font-display text-lg font-semibold tracking-wide text-saffron">
             Adi Jyotish Gurus
           </span>
         </Link>
@@ -39,8 +39,8 @@ export function SiteHeader() {
                 className={cn(
                   "rounded-full px-3 py-2 text-xs font-bold transition-colors sm:text-sm",
                   pathname?.startsWith(link.href)
-                    ? "bg-celestial-gold/15 text-celestial-gold shadow-[inset_0_0_0_1px_rgba(212,175,55,0.25)]"
-                    : "text-space-lavender hover:text-galactic-white"
+                    ? "bg-saffron/15 text-saffron shadow-[inset_0_0_0_1px_rgba(234,88,12,0.25)]"
+                    : "text-clay hover:text-ink"
                 )}
               >
                 {link.label}
@@ -52,7 +52,7 @@ export function SiteHeader() {
           </nav>
         ) : status === "unauthenticated" ? (
           <nav className="flex items-center gap-2">
-            <Link href="/login" className="text-sm font-semibold text-space-lavender hover:text-galactic-white">
+            <Link href="/login" className="text-sm font-semibold text-clay hover:text-ink">
               Log in
             </Link>
             <Link href="/signup" className={buttonVariants({ size: "sm" })}>

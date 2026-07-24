@@ -89,11 +89,11 @@ export function ProfilePanel({
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center text-center">
-        <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-celestial-gold bg-gradient-to-br from-soft-plum to-dark-space-purple text-4xl shadow-[0_0_40px_-8px_rgba(212,175,55,0.6)]">
+        <div className="flex h-24 w-24 items-center justify-center rounded-full border-2 border-saffron bg-gradient-to-br from-paper to-sand text-4xl shadow-[0_0_40px_-8px_rgba(234,88,12,0.6)]">
           {isSubscribed ? "🧙" : "🧘"}
         </div>
-        <p className="font-display mt-4 text-xl font-semibold tracking-wide text-galactic-white">{user.name}</p>
-        <p className="text-sm text-space-lavender">{user.email}</p>
+        <p className="font-display mt-4 text-xl font-semibold tracking-wide text-ink">{user.name}</p>
+        <p className="text-sm text-clay">{user.email}</p>
       </div>
 
       {(error || message) && (
@@ -107,7 +107,7 @@ export function ProfilePanel({
       )}
 
       <Card className="p-5">
-        <p className="mb-3 text-xs font-bold text-celestial-gold">PREFERRED LANGUAGE</p>
+        <p className="mb-3 text-xs font-bold text-saffron">PREFERRED LANGUAGE</p>
         <ChipSelect
           value={user.preferredLanguage}
           onChange={updateLanguage}
@@ -120,17 +120,17 @@ export function ProfilePanel({
       </Card>
 
       <div>
-        <p className="mb-2 text-xs font-bold text-celestial-gold">MY SUBSCRIPTION STATUS</p>
+        <p className="mb-2 text-xs font-bold text-saffron">MY SUBSCRIPTION STATUS</p>
         {isSubscribed ? (
-          <Card className="border-2 border-celestial-gold p-5">
+          <Card className="border-2 border-saffron p-5">
             <div className="flex items-center justify-between">
-              <p className="text-lg font-bold text-celestial-gold">{user.subscriptionTier}</p>
+              <p className="text-lg font-bold text-saffron">{user.subscriptionTier}</p>
               <span className="rounded-md bg-emerald-500/20 px-2 py-1 text-[10px] font-bold text-emerald-400">
                 ACTIVE
               </span>
             </div>
             {user.subscriptionExpiry && (
-              <p className="mt-2 text-xs text-galactic-white">
+              <p className="mt-2 text-xs text-ink">
                 Renews: {new Date(user.subscriptionExpiry).toLocaleDateString()}
               </p>
             )}
@@ -148,14 +148,14 @@ export function ProfilePanel({
             {SUBSCRIPTION_TIERS.map((tier) => (
               <Card key={tier.id} className="p-4">
                 <div className="flex items-center justify-between">
-                  <p className="font-bold text-galactic-white">
+                  <p className="font-bold text-ink">
                     {tier.iconSymbol} {tier.name}
                   </p>
-                  <p className="font-extrabold text-celestial-gold">
+                  <p className="font-extrabold text-saffron">
                     ₹{tier.price}/{tier.period}
                   </p>
                 </div>
-                <p className="mt-1 text-xs text-space-lavender">{tier.description}</p>
+                <p className="mt-1 text-xs text-clay">{tier.description}</p>
                 {razorpayConfigured ? (
                   <RazorpayCheckoutButton
                     purpose={{ type: "subscription", tierId: tier.id }}
@@ -180,27 +180,27 @@ export function ProfilePanel({
         )}
       </div>
 
-      <Card className="border-2 border-celestial-gold/50 p-5">
+      <Card className="border-2 border-saffron/50 p-5">
         <div className="flex items-center justify-between">
-          <p className="font-bold text-celestial-gold">🪙 Celestial Wallet</p>
-          <p className="text-xl font-extrabold text-celestial-gold">₹{user.walletBalance}.00</p>
+          <p className="font-bold text-saffron">🪙 Celestial Wallet</p>
+          <p className="text-xl font-extrabold text-saffron">₹{user.walletBalance}.00</p>
         </div>
 
         <div className="mt-3 flex items-center gap-2">
-          <code className="rounded-lg bg-deep-midnight px-3 py-1.5 text-sm font-bold text-galactic-white">
+          <code className="rounded-lg bg-cream px-3 py-1.5 text-sm font-bold text-ink">
             {referralCode}
           </code>
           <button
             type="button"
             onClick={copyReferralCode}
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-celestial-gold/15 text-celestial-gold hover:bg-celestial-gold/25"
+            className="flex h-8 w-8 items-center justify-center rounded-lg bg-saffron/15 text-saffron hover:bg-saffron/25"
             aria-label="Copy referral code"
           >
             {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
           </button>
         </div>
 
-        <p className="mt-3 text-xs text-space-lavender">
+        <p className="mt-3 text-xs text-clay">
           Share your code. When a friend activates a plan, you get 50% of their plan price credited (one-time demo bonus).
         </p>
 
@@ -227,13 +227,13 @@ export function ProfilePanel({
       </Card>
 
       <div>
-        <p className="mb-2 text-xs font-bold text-celestial-gold">RECHARGE WALLET</p>
+        <p className="mb-2 text-xs font-bold text-saffron">RECHARGE WALLET</p>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {CREDITS_PACKS.map((pack) => (
             <Card key={pack.id} className="p-4 text-center">
               <p className="text-2xl">{pack.iconSymbol}</p>
-              <p className="mt-1 text-sm font-bold text-galactic-white">{pack.name}</p>
-              <p className="text-xs text-space-lavender">+₹{pack.creditsAmount} credits</p>
+              <p className="mt-1 text-sm font-bold text-ink">{pack.name}</p>
+              <p className="text-xs text-clay">+₹{pack.creditsAmount} credits</p>
               {razorpayConfigured ? (
                 <RazorpayCheckoutButton
                   purpose={{ type: "credits", packId: pack.id }}
@@ -259,7 +259,7 @@ export function ProfilePanel({
         </div>
       </div>
 
-      <CardContent className="p-0 text-center text-[10px] leading-relaxed text-space-lavender/60">
+      <CardContent className="p-0 text-center text-[10px] leading-relaxed text-clay/60">
         Disclaimer: Adi Jyotish Gurus provides AI-generated consultations for spiritual guidance and
         entertainment purposes only. This does not constitute licensed financial, legal, or medical advice.
       </CardContent>

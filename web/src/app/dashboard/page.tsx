@@ -35,19 +35,19 @@ export default async function DashboardPage() {
     <div className="relative mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
       <div
         aria-hidden
-        className="pointer-events-none absolute -top-10 left-1/2 -z-10 h-[380px] w-[380px] -translate-x-1/2 rounded-full bg-celestial-gold/10 blur-[120px]"
+        className="pointer-events-none absolute -top-10 left-1/2 -z-10 h-[380px] w-[380px] -translate-x-1/2 rounded-full bg-saffron/10 blur-[120px]"
       />
 
       <FadeIn>
         <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-astral-rose">
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-rust">
               {timeOfDayGreeting()}
             </p>
-            <h1 className="font-display mt-1 text-2xl font-semibold tracking-wide text-celestial-gold sm:text-3xl">
+            <h1 className="font-display mt-1 text-2xl font-semibold tracking-wide text-saffron sm:text-3xl">
               Namaste, {user.name}
             </h1>
-            <p className="mt-1 text-sm text-space-lavender">Select an AI Guide to reveal your celestial path.</p>
+            <p className="mt-1 text-sm text-clay">Select an AI Guide to reveal your celestial path.</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -78,7 +78,7 @@ export default async function DashboardPage() {
 
       <FadeIn delay={0.25}>
         <div>
-          <h2 className="font-display mb-4 text-lg font-semibold tracking-wide text-galactic-white">
+          <h2 className="font-display mb-4 text-lg font-semibold tracking-wide text-ink">
             Choose Your AI Astrologer
           </h2>
           <AstrologerBrowser astrologers={astrologers} />
@@ -90,11 +90,11 @@ export default async function DashboardPage() {
 
 function StatChip({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
-    <div className="flex items-center gap-2 rounded-xl border border-celestial-gold/20 bg-soft-plum/60 px-3 py-2 backdrop-blur-sm">
+    <div className="flex items-center gap-2 rounded-xl border border-saffron/20 bg-paper/60 px-3 py-2 backdrop-blur-sm">
       <span className="text-lg">{icon}</span>
       <div>
-        <p className="text-[9px] uppercase tracking-wide text-space-lavender">{label}</p>
-        <p className="text-xs font-bold text-galactic-white">{value}</p>
+        <p className="text-[9px] uppercase tracking-wide text-clay">{label}</p>
+        <p className="text-xs font-bold text-ink">{value}</p>
       </div>
     </div>
   );
@@ -102,19 +102,19 @@ function StatChip({ icon, label, value }: { icon: string; label: string; value: 
 
 function QuickFactsCard({ tithi, nakshatra, moonSign }: { tithi: string; nakshatra: string; moonSign: string }) {
   return (
-    <div className="h-full rounded-2xl border border-celestial-gold/20 bg-gradient-to-br from-soft-plum/60 via-soft-plum/40 to-dark-space-purple/60 p-5 backdrop-blur-sm">
-      <p className="font-bold text-celestial-gold">✨ Why This Matters Today</p>
-      <p className="mt-2 text-xs leading-relaxed text-space-lavender">
-        With the Moon transiting <span className="text-galactic-white">{moonSign}</span> under{" "}
-        <span className="text-galactic-white">{nakshatra}</span> Nakshatra during{" "}
-        <span className="text-galactic-white">{tithi}</span>, today carries a distinct energetic signature. Your AI
+    <div className="h-full rounded-2xl border border-saffron/20 bg-gradient-to-br from-paper/60 via-paper/40 to-sand/60 p-5 backdrop-blur-sm">
+      <p className="font-bold text-saffron">✨ Why This Matters Today</p>
+      <p className="mt-2 text-xs leading-relaxed text-clay">
+        With the Moon transiting <span className="text-ink">{moonSign}</span> under{" "}
+        <span className="text-ink">{nakshatra}</span> Nakshatra during{" "}
+        <span className="text-ink">{tithi}</span>, today carries a distinct energetic signature. Your AI
         astrologer factors these live transits into every reading - not a generic, one-size-fits-all script.
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         {["Live Transits", "Vedic Panchang", "Personalized Kundli", "AI-Powered"].map((tag) => (
           <span
             key={tag}
-            className="rounded-full border border-celestial-gold/30 bg-celestial-gold/10 px-2.5 py-1 text-[10px] font-bold text-celestial-gold"
+            className="rounded-full border border-saffron/30 bg-saffron/10 px-2.5 py-1 text-[10px] font-bold text-saffron"
           >
             {tag}
           </span>
