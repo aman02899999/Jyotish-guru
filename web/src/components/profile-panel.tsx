@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChipSelect } from "@/components/ui/chip-select";
 import { RazorpayCheckoutButton } from "@/components/razorpay-checkout-button";
+import { WalletHistory } from "@/components/wallet-history";
 import { SUBSCRIPTION_TIERS, CREDITS_PACKS } from "@/lib/subscriptions";
 import { generateReferralCode } from "@/lib/referral-code";
 import type { SafeUser } from "@/lib/current-user";
@@ -24,6 +25,7 @@ export function ProfilePanel({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [walletRefreshToken, setWalletRefreshToken] = useState(0);
 
   const isSubscribed = user.subscriptionTier !== "Free";
   const referralCode = generateReferralCode(user.name);
@@ -45,6 +47,7 @@ export function ProfilePanel({
       }
       if (data.user) setUser(data.user);
       if (data.message) setMessage(data.message);
+      setWalletRefreshToken((n) => n + 1);
       router.refresh();
     } catch {
       setError("Network error. Please try again.");
@@ -59,6 +62,7 @@ export function ProfilePanel({
       const response = await fetch("/api/profile");
       const data = await response.json();
       if (response.ok) setUser(data.user);
+      setWalletRefreshToken((n) => n + 1);
       router.refresh();
     } catch {
       setError("Payment went through, but refreshing your profile failed. Reload the page.");
@@ -203,6 +207,11 @@ export function ProfilePanel({
         <p className="mt-3 text-xs text-clay">
           Share your code. When a friend activates a plan, you get 50% of their plan price credited (one-time demo bonus).
         </p>
+
+        <div className="mt-4 border-t border-clay/15 pt-4">
+          <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-clay">Recent Activity</p>
+          <WalletHistory refreshToken={walletRefreshToken} />
+        </div>
 
         <div className="mt-3 flex gap-2">
           <Button

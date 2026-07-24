@@ -20,16 +20,25 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     );
   }
 
-  const [, updatedSession] = await prisma.$transaction([
-    prisma.user.update({
+  const updatedSession = await prisma.$transaction(async (tx) => {
+    const updatedUser = await tx.user.update({
       where: { id: user.id },
       data: { walletBalance: { decrement: session.price } },
-    }),
-    prisma.reportSession.update({
+    });
+    await tx.walletTransaction.create({
+      data: {
+        userId: user.id,
+        type: "report_payment",
+        amount: -session.price,
+        balanceAfter: updatedUser.walletBalance,
+        description: `Consultation with ${session.astrologerName}`,
+      },
+    });
+    return tx.reportSession.update({
       where: { id: session.id },
       data: { isPaid: true },
-    }),
-  ]);
+    });
+  });
 
   return NextResponse.json({ session: updatedSession });
 }

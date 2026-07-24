@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCurrentUser, toSafeUser } from "@/lib/current-user";
-import { prisma } from "@/lib/prisma";
 import { generateReferralCode } from "@/lib/referral-code";
+import { adjustWallet } from "@/lib/wallet-ledger";
 
 const DEMO_PLAN_NAME = "Mahadasha Gold";
 const DEMO_PLAN_PRICE = 1999;
@@ -24,10 +24,13 @@ export async function POST() {
   }
 
   const bonus = Math.floor(DEMO_PLAN_PRICE * 0.5);
-  const updated = await prisma.user.update({
-    where: { id: user.id },
-    data: { walletBalance: { increment: bonus }, referralClaimed: true },
-  });
+  const updated = await adjustWallet(
+    user.id,
+    bonus,
+    "referral_bonus",
+    `Referral bonus - friend activated '${DEMO_PLAN_NAME}'`,
+    { referralClaimed: true }
+  );
 
   const safeUser = toSafeUser(updated);
   return NextResponse.json({

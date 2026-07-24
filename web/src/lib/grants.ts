@@ -2,6 +2,7 @@ import "server-only";
 import { prisma } from "@/lib/prisma";
 import { SUBSCRIPTION_TIERS, CREDITS_PACKS } from "@/lib/subscriptions";
 import { getConsultationPrice } from "@/lib/pricing-calculator";
+import { adjustWallet } from "@/lib/wallet-ledger";
 
 const PERIOD_MS: Record<string, number> = {
   week: 7 * 24 * 60 * 60 * 1000,
@@ -46,10 +47,7 @@ export async function grantSubscription(userId: string, tierId: string): Promise
 export async function grantCredits(userId: string, packId: string): Promise<void> {
   const pack = CREDITS_PACKS.find((p) => p.id === packId);
   if (!pack) return;
-  await prisma.user.update({
-    where: { id: userId },
-    data: { walletBalance: { increment: pack.creditsAmount } },
-  });
+  await adjustWallet(userId, pack.creditsAmount, "credit_purchase", `${pack.name} recharge`);
 }
 
 export async function grantReportUnlock(userId: string, sessionId: string): Promise<void> {

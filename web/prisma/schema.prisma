@@ -24,6 +24,27 @@ model User {
 
   sessions ReportSession[]
   paymentOrders PaymentOrder[]
+  walletTransactions WalletTransaction[]
+}
+
+// One row per change to a user's walletBalance, so the running total is
+// always reconstructable from history instead of being an opaque integer.
+// amount is signed (positive = credit, negative = debit); balanceAfter is
+// the resulting walletBalance, captured at write time for a stable audit
+// trail even if later transactions change the current balance.
+model WalletTransaction {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type          String   // "credit_purchase" | "referral_bonus" | "report_payment"
+  amount        Int
+  balanceAfter  Int
+  description   String
+
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
 }
 
 // One row per Razorpay order we create. purposeType/purposeRef record what
