@@ -12,6 +12,7 @@ const NAV_LINKS = [
   { href: "/dashboard", label: "Consult" },
   { href: "/compatibility", label: "Kundli Milan" },
   { href: "/muhurat", label: "Muhurat" },
+  { href: "/calendar", label: "Calendar" },
   { href: "/reports", label: "My Reports" },
   { href: "/profile", label: "Profile" },
 ];
