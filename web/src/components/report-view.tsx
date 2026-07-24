@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { BirthChart } from "@/components/birth-chart";
 import { TransitAlerts } from "@/components/transit-alerts";
+import { downloadReportPdf } from "@/lib/report-pdf";
 import { Printer, Star } from "lucide-react";
 
 export function ReportView({ session }: { session: ReportSession }) {
@@ -68,7 +69,7 @@ export function ReportView({ session }: { session: ReportSession }) {
             {session.astrologerName} · {session.specialty}
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={() => window.print()}>
+        <Button variant="outline" size="sm" onClick={() => downloadReportPdf(session)}>
           <Printer className="h-3.5 w-3.5" /> Save as PDF
         </Button>
       </div>
