@@ -20,6 +20,9 @@ model User {
   subscriptionExpiry  DateTime?
   walletBalance       Int       @default(0)
   referralClaimed     Boolean   @default(false)
+  lastActiveDate      String?
+  currentStreak       Int       @default(0)
+  longestStreak       Int       @default(0)
   createdAt           DateTime  @default(now())
 
   sessions ReportSession[]

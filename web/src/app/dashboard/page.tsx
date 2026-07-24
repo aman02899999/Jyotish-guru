@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/current-user";
 import { getAstrologersWithStats, type AstrologerWithStats } from "@/lib/astrologer-stats";
 import { getFavoriteAstrologerIds } from "@/lib/favorites";
+import { recordDailyVisit } from "@/lib/record-daily-visit";
 import { calculatePanchang, panchangExplanation } from "@/lib/panchang-calculator";
 import { AstrologerCard } from "@/components/astrologer-card";
 import { PanchangCard } from "@/components/panchang-card";
@@ -29,6 +30,8 @@ export default async function DashboardPage() {
   const elements = calculatePanchang(todayStr);
   const explanation = panchangExplanation(elements, user.preferredLanguage);
   const panchang = { date: todayStr, ...elements, explanation };
+
+  const streak = await recordDailyVisit(user.id, user.lastActiveDate, user.currentStreak, user.longestStreak);
 
   const daysAsSeeker = Math.max(
     1,
@@ -58,6 +61,15 @@ export default async function DashboardPage() {
             <StatChip icon="🪙" label="Wallet" value={`₹${user.walletBalance}`} />
             <StatChip icon="🧘" label="Plan" value={user.subscriptionTier} />
             <StatChip icon="🌙" label="Seeker Since" value={`Day ${daysAsSeeker}`} />
+            <StatChip
+              icon="🔥"
+              label="Streak"
+              value={
+                streak.longestStreak > streak.currentStreak
+                  ? `${streak.currentStreak}d · best ${streak.longestStreak}`
+                  : `${streak.currentStreak} day${streak.currentStreak === 1 ? "" : "s"}`
+              }
+            />
           </div>
         </div>
       </FadeIn>
