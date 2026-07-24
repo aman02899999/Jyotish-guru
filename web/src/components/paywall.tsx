@@ -6,17 +6,44 @@ import Link from "next/link";
 import type { ReportSession } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { RazorpayCheckoutButton } from "@/components/razorpay-checkout-button";
 
-export function Paywall({ session, walletBalance }: { session: ReportSession; walletBalance: number }) {
+export function Paywall({
+  session,
+  walletBalance,
+  razorpayConfigured,
+}: {
+  session: ReportSession;
+  walletBalance: number;
+  razorpayConfigured: boolean;
+}) {
   const router = useRouter();
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function pay(endpoint: "pay" | "mock-pay") {
+  async function payWithWallet() {
     setIsProcessing(true);
     setError(null);
     try {
-      const response = await fetch(`/api/sessions/${session.id}/${endpoint}`, { method: "POST" });
+      const response = await fetch(`/api/sessions/${session.id}/pay`, { method: "POST" });
+      const data = await response.json();
+      if (!response.ok) {
+        setError(data.error ?? "Payment failed.");
+        setIsProcessing(false);
+        return;
+      }
+      router.refresh();
+    } catch {
+      setError("Network error. Please try again.");
+      setIsProcessing(false);
+    }
+  }
+
+  async function payMockCheckout() {
+    setIsProcessing(true);
+    setError(null);
+    try {
+      const response = await fetch(`/api/sessions/${session.id}/mock-pay`, { method: "POST" });
       const data = await response.json();
       if (!response.ok) {
         setError(data.error ?? "Payment failed.");
@@ -73,7 +100,7 @@ export function Paywall({ session, walletBalance }: { session: ReportSession; wa
             <Button
               className="mt-3 w-full"
               disabled={!hasEnoughBalance || isProcessing}
-              onClick={() => pay("pay")}
+              onClick={payWithWallet}
             >
               {hasEnoughBalance ? `Pay ₹${session.price} With Wallet` : "Insufficient Balance"}
             </Button>
@@ -85,12 +112,25 @@ export function Paywall({ session, walletBalance }: { session: ReportSession; wa
             <div className="h-px flex-1 bg-space-lavender/15" />
           </div>
 
-          <Button variant="outline" className="w-full" disabled={isProcessing} onClick={() => pay("mock-pay")}>
-            {isProcessing ? "Processing..." : "Simulate Card / UPI Payment"}
-          </Button>
-          <p className="text-[10px] text-space-lavender/60">
-            Sandbox mode - this is a demo checkout, no real payment is charged.
-          </p>
+          {razorpayConfigured ? (
+            <RazorpayCheckoutButton
+              purpose={{ type: "report", sessionId: session.id }}
+              label={`Pay ₹${session.price} with Razorpay`}
+              variant="outline"
+              className="w-full"
+              disabled={isProcessing}
+              onSuccess={() => router.refresh()}
+            />
+          ) : (
+            <>
+              <Button variant="outline" className="w-full" disabled={isProcessing} onClick={payMockCheckout}>
+                {isProcessing ? "Processing..." : "Simulate Card / UPI Payment"}
+              </Button>
+              <p className="text-[10px] text-space-lavender/60">
+                Sandbox mode - this is a demo checkout, no real payment is charged.
+              </p>
+            </>
+          )}
         </div>
       </Card>
 

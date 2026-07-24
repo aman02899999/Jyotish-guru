@@ -2,8 +2,8 @@
 
 A full-stack web version of the Adi Jyotish Gurus Android app: an AI-powered
 Vedic astrology consultation platform. Built with Next.js (App Router),
-TypeScript, Tailwind CSS, Prisma + SQLite, NextAuth (Auth.js) credentials
-login, and Google's Gemini API.
+TypeScript, Tailwind CSS, Prisma + Postgres (Supabase), NextAuth (Auth.js)
+credentials login, and Google's Gemini API.
 
 The core calculation logic (Panchang almanac, subscription pricing, referral
 codes, astrologer search) is ported line-for-line from the Android app's
@@ -14,10 +14,11 @@ behaviorally consistent.
 
 - **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript**
 - **Tailwind CSS v4** with a custom dark "celestial" theme matching the Android app
-- **Prisma** + **SQLite** for persistence (no external DB needed for local dev)
+- **Prisma** + **Postgres** (via Supabase's free tier) for persistence
 - **NextAuth v5 (Auth.js)** - email/password (Credentials) login, no OAuth app registration required
 - **Firebase Auth** (optional) - adds "Continue with Google"; see below
 - **Gemini API** - called server-side only (API routes), the key never reaches the browser
+- **Razorpay** (optional) - real payment processing for subscriptions, wallet top-ups, and per-report checkout; see below
 - **Vitest** for unit tests
 
 ## Getting started
@@ -26,13 +27,30 @@ behaviorally consistent.
 cd web
 npm install
 cp .env.example .env
-# Edit .env: set GEMINI_API_KEY (optional, see below) and a real AUTH_SECRET
+# Edit .env: set DATABASE_URL/DATABASE_URL_DIRECT (see "Database" below),
+# GEMINI_API_KEY (optional, see below), and a real AUTH_SECRET
 #   openssl rand -base64 32
-npm run db:push   # creates dev.db and applies the schema
+npm run db:push   # applies the schema to your Postgres database
 npm run dev
 ```
 
 Open http://localhost:3000, sign up with any email/password, and you're in.
+
+### Database (Supabase Postgres)
+
+1. Create a free project at https://supabase.com/dashboard.
+2. **Project Settings -> Database -> Connection string**: copy the
+   **Transaction pooler** string (port `6543`) into `DATABASE_URL`, and the
+   **direct connection** string (port `5432`) into `DATABASE_URL_DIRECT`.
+   The app runs on the pooled connection (serverless functions open many
+   short-lived connections); migrations/`db push` need the direct one, since
+   the pooler's transaction mode doesn't support the prepared statements
+   Prisma uses for schema changes.
+3. `npm run db:push` to create the tables.
+
+Any other managed Postgres (Neon, Railway, RDS, ...) works the same way -
+just set `DATABASE_URL` to it and drop `DATABASE_URL_DIRECT` if there's no
+separate pooler endpoint.
 
 ### Gemini API key
 
@@ -71,6 +89,41 @@ Two things to enable in the Firebase Console before it'll work:
 Signing in with Google links to an existing email/password account with the
 same email address rather than creating a duplicate.
 
+### Payments (Razorpay, optional)
+
+Real payment processing only turns on if these are set in `.env`:
+
+```
+RAZORPAY_KEY_ID=""
+RAZORPAY_KEY_SECRET=""
+```
+
+Get both from the Razorpay Dashboard: **Settings -> API Keys**. Use a
+`rzp_test_...` key pair while developing - it behaves identically to a live
+key but no real money moves, and Razorpay's test-mode Checkout accepts
+canned test cards/UPI IDs from their docs.
+
+Without these set, subscriptions/credits/report checkout fall back to the
+clearly-labeled sandbox flow that just grants instantly with no payment -
+this is the default and requires no setup.
+
+How it works when configured:
+1. Client clicks "Subscribe" / "Recharge" / "Pay" -> `POST /api/payments/razorpay/order`.
+   The server looks up the *actual* price for the tier/pack/session id server-side
+   (the client never sends an amount) and creates a Razorpay order, recorded
+   in the `PaymentOrder` table as `status: "created"`.
+2. Razorpay's Checkout.js widget opens in the browser for the user to pay.
+3. On success, the client posts the returned order id/payment id/signature to
+   `POST /api/payments/razorpay/verify`, which recomputes the HMAC-SHA256
+   signature server-side (`RAZORPAY_KEY_SECRET`) and only grants the
+   subscription/credits/report unlock if it matches. Verification is
+   idempotent, so a duplicate call (e.g. a retried network request) can't
+   grant twice.
+
+The old demo "pay" endpoints (`/api/profile/subscribe`, `/api/profile/credits`,
+`/api/sessions/[id]/mock-pay`) return `403` once Razorpay is configured, so a
+stale client can't bypass real payment with the free demo path.
+
 ## Scripts
 
 | Command | Description |
@@ -81,7 +134,7 @@ same email address rather than creating a duplicate.
 | `npm run test` | Run Vitest unit tests |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
-| `npm run db:push` | Sync `prisma/schema.prisma` to the SQLite database |
+| `npm run db:push` | Sync `prisma/schema.prisma` to the Postgres database |
 | `npm run db:studio` | Open Prisma Studio to browse the database |
 
 ## What's real vs. demo
@@ -89,10 +142,11 @@ same email address rather than creating a duplicate.
 - **Auth**: real. Passwords are hashed with bcrypt; sessions are signed JWTs via NextAuth.
 - **AI reports/horoscopes/FAQ**: real, calling the Gemini API server-side (requires your own key).
 - **Panchang calendar**: real math (mean-motion sun/moon ephemeris approximation), not random.
-- **Payments (wallet top-up, subscriptions, per-report checkout)**: demo/sandbox only, exactly like the
-  Android app's simulated Google Play Billing. No payment gateway is wired up - there are no
-  Stripe/Razorpay credentials to integrate against in this environment. Every "pay" action just
-  updates the database directly and is clearly labeled as a demo/sandbox flow in the UI.
+- **Payments (wallet top-up, subscriptions, per-report checkout)**: real via Razorpay when
+  `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` are set (see above) - signed order creation +
+  HMAC-verified payment confirmation, no client-supplied amounts trusted. Without those env vars,
+  falls back to a demo/sandbox flow (exactly like the Android app's simulated Google Play Billing)
+  that just updates the database directly and is clearly labeled as a demo in the UI.
 
 ## Project structure
 

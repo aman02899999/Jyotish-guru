@@ -3,6 +3,7 @@ import { getCurrentUser } from "@/lib/current-user";
 import { getOwnedSession } from "@/lib/owned-session";
 import { Paywall } from "@/components/paywall";
 import { ReportView } from "@/components/report-view";
+import { isRazorpayConfigured } from "@/lib/razorpay";
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser();
@@ -15,7 +16,7 @@ export default async function SessionPage({ params }: { params: Promise<{ id: st
   if (!session.isPaid) {
     return (
       <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-        <Paywall session={session} walletBalance={user.walletBalance} />
+        <Paywall session={session} walletBalance={user.walletBalance} razorpayConfigured={isRazorpayConfigured} />
       </div>
     );
   }
