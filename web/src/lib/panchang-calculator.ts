@@ -92,6 +92,18 @@ function formatClockTime(hoursDecimal: number): string {
   return `${String(hour12).padStart(2, "0")}:${String(minute).padStart(2, "0")} ${amPm}`;
 }
 
+/** Sidereal (Nirayana) mean solar longitude, in degrees. Shared with birth-chart-calculator.ts. */
+export function sunSiderealLongitudeDeg(doy: number): number {
+  const sunLong = ((doy - 104) * 360.0) / 365.256;
+  return ((sunLong % 360) + 360) % 360;
+}
+
+/** Sidereal (Nirayana) mean lunar longitude, in degrees. Shared with birth-chart-calculator.ts. */
+export function moonSiderealLongitudeDeg(daysSince2000: number): number {
+  const moonLong = 180.0 + daysSince2000 * 13.1763;
+  return ((moonLong % 360) + 360) % 360;
+}
+
 /** @param dateStr an ISO calendar date, e.g. "2026-07-22" */
 export function calculatePanchang(dateStr: string): PanchangElements {
   const [yearStr, monthStr, dayStr] = dateStr.split("-");
@@ -106,11 +118,8 @@ export function calculatePanchang(dateStr: string): PanchangElements {
   // Days since the 2000-01-01 epoch, at local noon, used for the mean-motion moon model.
   const daysSince2000 = (year - 2000) * 365.25 + doy + 0.5;
 
-  let sunLong = ((doy - 104) * 360.0) / 365.256;
-  sunLong = ((sunLong % 360) + 360) % 360;
-
-  let moonLong = 180.0 + daysSince2000 * 13.1763;
-  moonLong = ((moonLong % 360) + 360) % 360;
+  const sunLong = sunSiderealLongitudeDeg(doy);
+  const moonLong = moonSiderealLongitudeDeg(daysSince2000);
 
   let elongation = moonLong - sunLong;
   elongation = ((elongation % 360) + 360) % 360;

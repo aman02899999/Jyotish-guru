@@ -6,6 +6,7 @@ import type { ReportSession } from "@prisma/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { BirthChart } from "@/components/birth-chart";
 import { Printer, Star } from "lucide-react";
 
 export function ReportView({ session }: { session: ReportSession }) {
@@ -70,6 +71,8 @@ export function ReportView({ session }: { session: ReportSession }) {
           <Printer className="h-3.5 w-3.5" /> Save as PDF
         </Button>
       </div>
+
+      <BirthChart dob={session.dob} tob={session.tob} />
 
       <Card>
         <CardContent className="pt-5">

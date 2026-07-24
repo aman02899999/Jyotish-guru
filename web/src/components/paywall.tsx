@@ -7,6 +7,7 @@ import type { ReportSession } from "@prisma/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { RazorpayCheckoutButton } from "@/components/razorpay-checkout-button";
+import { BirthChart } from "@/components/birth-chart";
 
 export function Paywall({
   session,
@@ -61,6 +62,8 @@ export function Paywall({
 
   return (
     <div className="space-y-6">
+      <BirthChart dob={session.dob} tob={session.tob} />
+
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">
           <CardTitle>Report Generated!</CardTitle>
