@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   );
 
   return (
-    <div className="relative mx-auto max-w-6xl space-y-8 px-4 py-8 sm:px-6">
+    <div className="relative mx-auto max-w-6xl space-y-8 overflow-x-hidden px-4 py-8 sm:px-6">
       <div
         aria-hidden
         className="pointer-events-none absolute -top-10 left-1/2 -z-10 h-[380px] w-[380px] -translate-x-1/2 rounded-full bg-saffron/10 blur-[120px]"

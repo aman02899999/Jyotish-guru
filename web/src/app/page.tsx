@@ -6,6 +6,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { ASTROLOGERS } from "@/lib/astrologers";
 import { FadeIn } from "@/components/fade-in";
 import { NavagrahaHero } from "@/components/navagraha-scene";
+import { Marquee } from "@/components/marquee";
+import { TiltCard } from "@/components/tilt-card";
+
+const RASHI_MARQUEE = [
+  { symbol: "♈", label: "Mesha" },
+  { symbol: "♉", label: "Vrishabha" },
+  { symbol: "♊", label: "Mithuna" },
+  { symbol: "♋", label: "Karka" },
+  { symbol: "♌", label: "Simha" },
+  { symbol: "♍", label: "Kanya" },
+  { symbol: "♎", label: "Tula" },
+  { symbol: "♏", label: "Vrishchika" },
+  { symbol: "♐", label: "Dhanu" },
+  { symbol: "♑", label: "Makara" },
+  { symbol: "♒", label: "Kumbha" },
+  { symbol: "♓", label: "Meena" },
+];
 
 const FEATURES = [
   {
@@ -73,20 +90,26 @@ export default async function LandingPage() {
         </FadeIn>
       </NavagrahaHero>
 
-      <section className="mt-24 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-16 border-y border-saffron/15">
+        <Marquee items={RASHI_MARQUEE} />
+      </div>
+
+      <section className="mt-16 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {FEATURES.map((feature, index) => (
           <FadeIn key={feature.title} delay={index * 0.08}>
-            <Card className="h-full transition-transform duration-300 hover:-translate-y-1 hover:border-saffron/40">
-              <CardHeader>
-                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-saffron/30 bg-gradient-to-br from-saffron/15 to-transparent text-xl">
-                  {feature.icon}
-                </span>
-                <CardTitle className="mt-3">{feature.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <CardDescription>{feature.description}</CardDescription>
-              </CardContent>
-            </Card>
+            <TiltCard>
+              <Card className="h-full">
+                <CardHeader>
+                  <span className="flex h-10 w-10 items-center justify-center rounded-full border border-saffron/30 bg-gradient-to-br from-saffron/15 to-transparent text-xl">
+                    {feature.icon}
+                  </span>
+                  <CardTitle className="mt-3">{feature.title}</CardTitle>
+                </CardHeader>
+                <CardContent className="pt-0">
+                  <CardDescription>{feature.description}</CardDescription>
+                </CardContent>
+              </Card>
+            </TiltCard>
           </FadeIn>
         ))}
       </section>
@@ -100,15 +123,17 @@ export default async function LandingPage() {
         <div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {ASTROLOGERS.slice(0, 6).map((astrologer, index) => (
             <FadeIn key={astrologer.id} delay={index * 0.06}>
-              <Card className="flex items-center gap-4 p-4 transition-transform duration-300 hover:-translate-y-0.5 hover:border-saffron/40">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-saffron/40 bg-gradient-to-br from-paper to-sand text-2xl shadow-[0_0_20px_-6px_rgba(234,88,12,0.4)]">
-                  {astrologer.iconSymbol}
-                </div>
-                <div>
-                  <p className="font-semibold text-ink">{astrologer.name}</p>
-                  <p className="text-xs text-saffron">{astrologer.specialty}</p>
-                </div>
-              </Card>
+              <TiltCard>
+                <Card className="flex items-center gap-4 p-4 hover:border-saffron/40">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-saffron/40 bg-gradient-to-br from-paper to-sand text-2xl shadow-[0_0_20px_-6px_rgba(234,88,12,0.4)]">
+                    {astrologer.iconSymbol}
+                  </div>
+                  <div>
+                    <p className="font-semibold text-ink">{astrologer.name}</p>
+                    <p className="text-xs text-saffron">{astrologer.specialty}</p>
+                  </div>
+                </Card>
+              </TiltCard>
             </FadeIn>
           ))}
         </div>
