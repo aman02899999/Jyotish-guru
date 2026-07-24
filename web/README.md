@@ -6,20 +6,37 @@ TypeScript, Tailwind CSS, Prisma + Postgres (Supabase), NextAuth (Auth.js)
 credentials login, and Google's Gemini API.
 
 The core calculation logic (Panchang almanac, subscription pricing, referral
-codes, astrologer search) is ported line-for-line from the Android app's
-Kotlin `lib/` code, with the same unit test coverage, so both platforms stay
-behaviorally consistent.
+codes, astrologer search, birth charts, Dasha periods, transits, Guna Milan
+compatibility, Muhurat timing, numerology) is all deterministic, classical-rule
+math with unit test coverage - no invented or randomized "astrology," and no
+fabricated reviews/testimonials (see "Reviews" below).
 
 ## Stack
 
 - **Next.js 16** (App Router, Turbopack) + **React 19** + **TypeScript**
-- **Tailwind CSS v4** with a custom dark "celestial" theme matching the Android app
+- **Tailwind CSS v4** with a custom off-white/orange theme, a React Three
+  Fiber 3D hero, and CSS-driven marquee/tilt-card motion
 - **Prisma** + **Postgres** (via Supabase's free tier) for persistence
 - **NextAuth v5 (Auth.js)** - email/password (Credentials) login, no OAuth app registration required
 - **Firebase Auth** (optional) - adds "Continue with Google"; see below
 - **Gemini API** - called server-side only (API routes), the key never reaches the browser
 - **Razorpay** (optional) - real payment processing for subscriptions, wallet top-ups, and per-report checkout; see below
+- **jsPDF** - generates a real, downloadable, text-based consultation PDF client-side
 - **Vitest** for unit tests
+
+## Features
+
+- **AI consultations** - 10 specialized AI astrologer personas, Gemini-generated reports, one included follow-up question per session, a real downloadable PDF of the full report.
+- **Birth Chart (Kundli)** - North Indian diamond Rashi chart with all 9 grahas placed into houses, shareable as a branded PNG.
+- **Vimshottari Dasha timeline** - the classical 120-year Mahadasha/Antardasha planetary period system, derived from the Moon's Nakshatra at birth.
+- **Transit (Gochar) alerts** - flags Sade Sati/Kantaka Shani (Saturn) and Guru Gochar (Jupiter) against your natal Moon sign, on every report.
+- **Kundli Milan compatibility** - Ashtakoot Guna Milan, with separate factor sets for marriage, friendship, and business-partner compatibility.
+- **Muhurat Finder** + **Auspicious Day Calendar** - classical tithi-position auspicious-timing rules, as an on-demand search or a month-grid calendar.
+- **Daily/weekly/monthly Vedic Rashifal** - live Panchang-based horoscope forecasts.
+- **Numerology** - Life Path/Destiny numbers, shareable as a PNG.
+- **Dashboard** - live Panchang, favorite astrologers, daily check-in streak, wallet balance with a full transaction ledger.
+- **Reviews** - real, user-submitted written reviews from account holders who actually paid for and completed a session (gated the same way star ratings always were). A landing-page highlights section shows the best of them and simply doesn't render until real reviews exist - there is no seeded/placeholder testimonial content anywhere in this app.
+- **Payments** - Razorpay (real) or a clearly-labeled sandbox fallback; see "Payments" below.
 
 ## Getting started
 
@@ -141,7 +158,15 @@ stale client can't bypass real payment with the free demo path.
 
 - **Auth**: real. Passwords are hashed with bcrypt; sessions are signed JWTs via NextAuth.
 - **AI reports/horoscopes/FAQ**: real, calling the Gemini API server-side (requires your own key).
-- **Panchang calendar**: real math (mean-motion sun/moon ephemeris approximation), not random.
+- **Panchang calendar, birth chart, Dasha, transits, Guna Milan, Muhurat, numerology**: all real,
+  deterministic classical-rule math (mean-motion sun/moon ephemeris approximation for the
+  astronomical parts) - not random and not AI-generated. Each has unit tests in `src/lib/*.test.ts`.
+- **Reviews/testimonials**: real. Only an account holder who actually paid for and completed a
+  session can leave one (same gate as the star rating). The landing page's "What seekers are
+  saying" section pulls live from the database and renders nothing at all until genuine reviews
+  exist - this app ships with zero seeded or placeholder review content.
+- **Wallet transaction history**: real ledger (`WalletTransaction`) - every balance change is
+  reconstructable from history, not just an opaque running total.
 - **Payments (wallet top-up, subscriptions, per-report checkout)**: real via Razorpay when
   `RAZORPAY_KEY_ID`/`RAZORPAY_KEY_SECRET` are set (see above) - signed order creation +
   HMAC-verified payment confirmation, no client-supplied amounts trusted. Without those env vars,
@@ -153,17 +178,21 @@ stale client can't bypass real payment with the free demo path.
 ```
 src/
   app/
-    (public)        page.tsx, login/, signup/
-    dashboard/       Panchang + daily horoscope + astrologer search
+    (public)        page.tsx (landing + testimonials), login/, signup/
+    dashboard/       Panchang, horoscope, favorites, streak, astrologer search
     astrologer/[id]/ intake form
-    session/[id]/    paywall or full report + follow-up Q&A
+    session/[id]/    paywall or full report (chart, Dasha, transits, PDF export) + follow-up Q&A
+    compatibility/   Kundli Milan (marriage/friendship/business)
+    muhurat/         Muhurat Finder (on-demand search)
+    calendar/        Auspicious Day Calendar (month grid)
     reports/         consultation history
-    profile/         subscription tiers, wallet, referral, language
-    api/             all backend routes (auth, sessions, panchang, profile, ...)
+    profile/         subscription tiers, wallet + transaction history, referral, language
+    api/             all backend routes (auth, sessions, panchang, profile, favorites, ...)
   components/        UI primitives (button, card, input, ...) + feature components
-  lib/                business logic: panchang-calculator, pricing-calculator,
-                       referral-code, astrologer-search-filter, gemini client,
+  lib/                business logic: panchang/birth-chart/dasha/transit/kundli-milan/
+                       muhurat/numerology calculators, pricing, referral-code,
+                       astrologer-search-filter, wallet-ledger, reviews, gemini client,
                        auth config, prisma client
-  lib/*.test.ts       Vitest unit tests for the ported pure logic
-prisma/schema.prisma  User + ReportSession models
+  lib/*.test.ts       Vitest unit tests for the pure calculation/business logic
+prisma/schema.prisma  User, ReportSession, PaymentOrder, WalletTransaction, FavoriteAstrologer
 ```
