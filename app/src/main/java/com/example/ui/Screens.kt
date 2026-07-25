@@ -32,10 +32,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -48,8 +46,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.data.Astrologer
-import com.example.data.AstrologerSearchFilter
-import com.example.data.ReferralCodeGenerator
 import com.example.data.ReportSession
 import com.example.data.UserProfile
 import com.example.ui.theme.*
@@ -64,12 +60,8 @@ import android.net.Uri
 import android.content.Context
 import android.content.Intent
 import androidx.core.content.FileProvider
-import android.widget.Toast
 import java.io.File
 import java.io.FileOutputStream
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 // --- Custom Programmatic Cosmic Starry Background Modifier ---
 fun Modifier.mysticalCosmicBackground(): Modifier = this.drawBehind {
@@ -957,14 +949,6 @@ fun AstrologerListScreen(viewModel: AstrologyViewModel) {
     val astrologers by viewModel.astrologers.collectAsState()
     val userProfile by viewModel.userProfile.collectAsState()
 
-    var searchQuery by remember { mutableStateOf("") }
-    var selectedSpecialty by remember { mutableStateOf<String?>(null) }
-
-    val specialties = remember(astrologers) { astrologers.map { it.specialty }.distinct().sorted() }
-    val filteredAstrologers = remember(astrologers, searchQuery, selectedSpecialty) {
-        AstrologerSearchFilter.apply(astrologers, searchQuery, selectedSpecialty)
-    }
-
     LaunchedEffect(Unit) {
         viewModel.refreshAstrologers()
     }
@@ -1018,97 +1002,8 @@ fun AstrologerListScreen(viewModel: AstrologyViewModel) {
             item {
                 DailyHoroscopeComponent(viewModel = viewModel)
             }
-            item {
-                OutlinedTextField(
-                    value = searchQuery,
-                    onValueChange = { searchQuery = it },
-                    placeholder = { Text("Search astrologers or specialties...", color = SpaceLavender, fontSize = 13.sp) },
-                    leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null, tint = CelestialGold) },
-                    trailingIcon = {
-                        if (searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { searchQuery = "" }) {
-                                Icon(Icons.Filled.Close, contentDescription = "Clear search", tint = SpaceLavender)
-                            }
-                        }
-                    },
-                    singleLine = true,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = GalacticWhite,
-                        unfocusedTextColor = GalacticWhite,
-                        focusedBorderColor = CelestialGold,
-                        unfocusedBorderColor = SpaceLavender.copy(alpha = 0.4f),
-                        focusedContainerColor = DeepMidnight,
-                        unfocusedContainerColor = DeepMidnight
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("astrologer_search_input")
-                )
-
-                if (specialties.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .horizontalScroll(rememberScrollState()),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        FilterChip(
-                            selected = selectedSpecialty == null,
-                            onClick = { selectedSpecialty = null },
-                            label = { Text("All", fontSize = 11.sp) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = CelestialGold,
-                                selectedLabelColor = DeepMidnight,
-                                containerColor = SoftPlum,
-                                labelColor = SpaceLavender
-                            ),
-                            modifier = Modifier.testTag("specialty_filter_all")
-                        )
-                        specialties.forEach { specialty ->
-                            FilterChip(
-                                selected = selectedSpecialty == specialty,
-                                onClick = {
-                                    selectedSpecialty = if (selectedSpecialty == specialty) null else specialty
-                                },
-                                label = { Text(specialty, fontSize = 11.sp) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = CelestialGold,
-                                    selectedLabelColor = DeepMidnight,
-                                    containerColor = SoftPlum,
-                                    labelColor = SpaceLavender
-                                ),
-                                modifier = Modifier.testTag("specialty_filter_${specialty.replace(" ", "_")}")
-                            )
-                        }
-                    }
-                }
-            }
-            if (filteredAstrologers.isEmpty()) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                            Text("🔍", fontSize = 32.sp)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "No astrologers match your search.",
-                                color = SpaceLavender,
-                                fontSize = 13.sp,
-                                textAlign = TextAlign.Center
-                            )
-                        }
-                    }
-                }
-            } else {
-                items(filteredAstrologers) { astrologer ->
-                    AstrologerCard(astrologer = astrologer, onSelect = { viewModel.selectAstrologer(astrologer) })
-                }
+            items(astrologers) { astrologer ->
+                AstrologerCard(astrologer = astrologer, onSelect = { viewModel.selectAstrologer(astrologer) })
             }
             item {
                 Spacer(modifier = Modifier.height(8.dp))
@@ -1293,10 +1188,7 @@ fun IntakeFormScreen(viewModel: AstrologyViewModel) {
         calendar.get(Calendar.YEAR),
         calendar.get(Calendar.MONTH),
         calendar.get(Calendar.DAY_OF_MONTH)
-    ).apply {
-        // A birth date can't be in the future.
-        datePicker.maxDate = System.currentTimeMillis()
-    }
+    )
 
     // Time Picker Dialog
     val timePickerDialog = TimePickerDialog(
@@ -1546,10 +1438,7 @@ fun IntakeFormScreen(viewModel: AstrologyViewModel) {
                         calendar.get(Calendar.YEAR) - 2,
                         calendar.get(Calendar.MONTH),
                         calendar.get(Calendar.DAY_OF_MONTH)
-                    ).apply {
-                        // A birth date can't be in the future.
-                        datePicker.maxDate = System.currentTimeMillis()
-                    }
+                    )
 
                     OutlinedTextField(
                         value = partnerDob,
@@ -2501,9 +2390,6 @@ fun ProfileScreen(viewModel: AstrologyViewModel) {
     val activeTierName = userProfile?.subscriptionTier ?: "Free"
     val isSubscribed = activeTierName != "Free"
 
-    val clipboardManager = LocalClipboardManager.current
-    val context = LocalContext.current
-
     val sdf = remember { SimpleDateFormat("dd MMM yyyy", Locale.getDefault()) }
     val expiryDateStr = remember(userProfile?.subscriptionExpiry) {
         val expiry = userProfile?.subscriptionExpiry ?: 0L
@@ -2776,37 +2662,16 @@ fun ProfileScreen(viewModel: AstrologyViewModel) {
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Referral Code: ${ReferralCodeGenerator.generate(userProfile?.name)}",
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = GalacticWhite,
-                        modifier = Modifier
-                            .background(DeepMidnight, RoundedCornerShape(8.dp))
-                            .padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        onClick = {
-                            val code = ReferralCodeGenerator.generate(userProfile?.name)
-                            clipboardManager.setText(AnnotatedString(code))
-                            Toast.makeText(context, "Referral code copied!", Toast.LENGTH_SHORT).show()
-                        },
-                        modifier = Modifier
-                            .size(32.dp)
-                            .background(CelestialGold.copy(alpha = 0.15f), RoundedCornerShape(8.dp))
-                            .testTag("copy_referral_code_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.ContentCopy,
-                            contentDescription = "Copy referral code",
-                            tint = CelestialGold,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
+                
+                Text(
+                    text = "Referral Code: ADI-${(userProfile?.name ?: "Seeker").uppercase().replace(" ", "")}",
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = GalacticWhite,
+                    modifier = Modifier
+                        .background(DeepMidnight, RoundedCornerShape(8.dp))
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                )
 
                 Spacer(modifier = Modifier.height(10.dp))
                 
@@ -3541,10 +3406,11 @@ fun DailyHoroscopeComponent(viewModel: AstrologyViewModel) {
 
     var showModal by remember { mutableStateOf(false) }
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
     val referralCode = remember(userProfile) {
-        ReferralCodeGenerator.generate(userProfile?.name)
+        val rawName = (userProfile?.name ?: "Seeker").uppercase().replace("[^A-Z0-9]".toRegex(), "")
+        val cleanedName = if (rawName.isBlank()) "SEEKER" else rawName
+        "ADI-$cleanedName"
     }
 
     Card(
@@ -3868,9 +3734,7 @@ fun DailyHoroscopeComponent(viewModel: AstrologyViewModel) {
                                         // Button 1: Real sharing
                                         Button(
                                             onClick = {
-                                                coroutineScope.launch {
-                                                    shareHoroscopeImage(context, userProfile?.name ?: "Seeker", text, referralCode)
-                                                }
+                                                shareHoroscopeImage(context, userProfile?.name ?: "Seeker", text, referralCode)
                                             },
                                             colors = ButtonDefaults.buttonColors(containerColor = CelestialGold),
                                             shape = RoundedCornerShape(10.dp),
@@ -3928,25 +3792,7 @@ fun DailyHoroscopeComponent(viewModel: AstrologyViewModel) {
 }
 
 // --- Image Generation & Sharing Utilities ---
-suspend fun shareHoroscopeImage(context: Context, userName: String, text: String, referralCode: String) {
-    // Bitmap rendering, PNG compression, and file I/O are CPU/disk heavy, so this
-    // work runs off the main thread; only the resulting share Intent is dispatched on Main.
-    val contentUri = withContext(Dispatchers.IO) {
-        renderAndSaveHoroscopeImage(context, userName, text, referralCode)
-    } ?: return
-
-    val shareIntent = Intent().apply {
-        action = Intent.ACTION_SEND
-        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        setDataAndType(contentUri, context.contentResolver.getType(contentUri))
-        putExtra(Intent.EXTRA_STREAM, contentUri)
-        putExtra(Intent.EXTRA_TEXT, "Jai Ho! Here is my customized Daily Vedic Rashifal from Adi Jyotish Gurus. Use my code '$referralCode' to get a ₹100 credit when you sign up! 🔮✨\n\nDownload now to check your stars!")
-    }
-
-    context.startActivity(Intent.createChooser(shareIntent, "Share Daily Rashifal"))
-}
-
-private fun renderAndSaveHoroscopeImage(context: Context, userName: String, text: String, referralCode: String): Uri? {
+fun shareHoroscopeImage(context: Context, userName: String, text: String, referralCode: String) {
     try {
         val bitmap = Bitmap.createBitmap(1080, 1350, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bitmap)
@@ -4087,12 +3933,23 @@ private fun renderAndSaveHoroscopeImage(context: Context, userName: String, text
         val stream = FileOutputStream(file)
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
         stream.close()
-
+        
+        // Share Intent
         val authority = "${context.packageName}.fileprovider"
-        return FileProvider.getUriForFile(context, authority, file)
+        val contentUri = FileProvider.getUriForFile(context, authority, file)
+        
+        val shareIntent = Intent().apply {
+            action = Intent.ACTION_SEND
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            setDataAndType(contentUri, context.contentResolver.getType(contentUri))
+            putExtra(Intent.EXTRA_STREAM, contentUri)
+            putExtra(Intent.EXTRA_TEXT, "Jai Ho! Here is my customized Daily Vedic Rashifal from Adi Jyotish Gurus. Use my code '$referralCode' to get a ₹100 credit when you sign up! 🔮✨\n\nDownload now to check your stars!")
+        }
+        
+        context.startActivity(Intent.createChooser(shareIntent, "Share Daily Rashifal"))
+        
     } catch (e: Exception) {
         android.util.Log.e("ShareHoroscope", "Error sharing horoscope image", e)
-        return null
     }
 }
 
@@ -4596,7 +4453,7 @@ fun AstroFaqComponent(viewModel: AstrologyViewModel) {
                                 color = CelestialGold
                             )
                             Text(
-                                text = "Gemini 2.5 Flash",
+                                text = "Gemini 3.5 Flash",
                                 fontSize = 9.sp,
                                 color = SpaceLavender,
                                 fontStyle = FontStyle.Italic
@@ -4944,18 +4801,7 @@ fun AstroNotificationCard(
 @Composable
 fun VedicPanchangComponent(viewModel: AstrologyViewModel) {
     val currentPanchang by viewModel.currentPanchang.collectAsState()
-    val selectedDate by viewModel.selectedPanchangDate.collectAsState()
-    val panchangDateFormat = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
-    val todayStr = remember { panchangDateFormat.format(Date()) }
-
-    fun shiftSelectedDate(days: Int) {
-        val cal = Calendar.getInstance()
-        val parsed = try { panchangDateFormat.parse(selectedDate) } catch (e: Exception) { null }
-        if (parsed != null) cal.time = parsed
-        cal.add(Calendar.DAY_OF_MONTH, days)
-        viewModel.updatePanchangDate(panchangDateFormat.format(cal.time))
-    }
-
+    
     Card(
         colors = CardDefaults.cardColors(containerColor = SoftPlum.copy(alpha = 0.5f)),
         border = BorderStroke(1.dp, CelestialGold.copy(alpha = 0.3f)),
@@ -4993,50 +4839,18 @@ fun VedicPanchangComponent(viewModel: AstrologyViewModel) {
                     }
                 }
                 
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(
-                        onClick = { shiftSelectedDate(-1) },
-                        modifier = Modifier
-                            .size(28.dp)
-                            .testTag("panchang_prev_day_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.ChevronLeft,
-                            contentDescription = "Previous day",
-                            tint = CelestialGold,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-
-                    Box(
-                        modifier = Modifier
-                            .background(CelestialGold.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
-                            .border(1.dp, CelestialGold.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-                            .clickable(enabled = selectedDate != todayStr) { viewModel.updatePanchangDate(todayStr) }
-                            .padding(horizontal = 8.dp, vertical = 4.dp)
-                            .testTag("panchang_date_badge")
-                    ) {
-                        Text(
-                            text = currentPanchang?.date ?: "TODAY",
-                            fontSize = 10.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = CelestialGold
-                        )
-                    }
-
-                    IconButton(
-                        onClick = { shiftSelectedDate(1) },
-                        modifier = Modifier
-                            .size(28.dp)
-                            .testTag("panchang_next_day_button")
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.ChevronRight,
-                            contentDescription = "Next day",
-                            tint = CelestialGold,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
+                Box(
+                    modifier = Modifier
+                        .background(CelestialGold.copy(alpha = 0.1f), RoundedCornerShape(8.dp))
+                        .border(1.dp, CelestialGold.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                ) {
+                    Text(
+                        text = currentPanchang?.date ?: "TODAY",
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = CelestialGold
+                    )
                 }
             }
 

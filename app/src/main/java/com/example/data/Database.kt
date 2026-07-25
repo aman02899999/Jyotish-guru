@@ -115,12 +115,6 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "astrology_database"
                 )
-                // Schema versions 1-4 were never captured as Room Migration objects in this
-                // repo's history (this file has only ever existed at version 5), so there is
-                // no source of truth to migrate from. A guessed Migration would be worse than
-                // this destructive fallback: an incorrect one crashes on open instead of just
-                // clearing local data. Bump this version and add a real Migration the next
-                // time the schema changes, now that a starting point exists.
                 .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
