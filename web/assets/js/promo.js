@@ -42,9 +42,24 @@ export const ACTION = {
 };
 
 /**
- * Campaign definitions. `when` is an optional predicate evaluated against live
- * context (chart, panchang, events) so promos are contextual rather than random.
+ * Named predicates. Campaigns in content.json reference these by string so a
+ * non-technical admin can pick a display condition without writing code.
  */
+export const CONDITIONS = {
+  always: () => true,
+  hasChart: (ctx) => !!ctx.chart,
+  noChart: (ctx) => !ctx.chart,
+  sadeSati: (ctx) => !!ctx.transits?.sadeSati?.active,
+  mercuryRetro: (ctx) => (ctx.events || []).some(
+    (e) => e.body === 'Mercury' && e.type === 'retrograde' &&
+      e.date - Date.now() < 45 * 86400000 && e.date > Date.now()
+  ),
+  eclipseSoon: (ctx) => (ctx.events || []).some(
+    (e) => e.type === 'eclipse' && e.date - Date.now() < 60 * 86400000 && e.date > Date.now()
+  ),
+};
+
+/** Fallback definitions, used only when content.json has not been loaded. */
 const CAMPAIGNS = [
   {
     id: 'campaign_sade_sati',
@@ -127,12 +142,23 @@ const CAMPAIGNS = [
   },
 ];
 
-/** Campaigns that pass their predicate and have not been dismissed. */
-export function activeCampaigns(ctx = {}) {
+/**
+ * Campaigns that are enabled, pass their condition, and have not been
+ * dismissed. Definitions come from the content store so the admin panel can
+ * add, edit, reorder and disable them without a code change.
+ */
+export function activeCampaigns(ctx = {}, defs = null) {
   const dismissed = new Set(readJSON(LS.dismissed, []));
-  return CAMPAIGNS
+  const list = defs && defs.length ? defs : CAMPAIGNS;
+  return list
+    .filter((c) => c.enabled !== false)
     .filter((c) => !dismissed.has(c.id))
-    .filter((c) => (typeof c.when === 'function' ? !!c.when(ctx) : true));
+    .filter((c) => {
+      if (typeof c.when === 'function') return !!c.when(ctx);
+      const pred = CONDITIONS[c.condition || 'always'];
+      return pred ? !!pred(ctx) : true;
+    })
+    .map((c) => ({ ...c, action: c.action || ACTION.OPEN_SECTION }));
 }
 
 export function dismissCampaign(id) {
@@ -237,7 +263,7 @@ const dayKey = (d = new Date()) =>
  * Register a visit and return the streak state.
  * Milestones unlock real features rather than cosmetic points.
  */
-export function touchStreak() {
+export function touchStreak(rewards = null) {
   const s = readJSON(LS.streak, { count: 0, last: null, best: 0 });
   const today = dayKey();
   if (s.last === today) return { ...s, isNew: false, milestone: null };
@@ -248,7 +274,8 @@ export function touchStreak() {
   s.best = Math.max(s.best, s.count);
   writeJSON(LS.streak, s);
 
-  const milestone = STREAK_REWARDS.find((m) => m.days === s.count) || null;
+  const ladder = (rewards && rewards.length) ? rewards : STREAK_REWARDS;
+  const milestone = ladder.find((m) => m.days === s.count) || null;
   if (milestone) {
     grantReward(milestone.id, milestone.label);
     addNotification({
@@ -279,7 +306,7 @@ export function getStreak() {
  * A deterministic weekly offer window: every offer ends at the coming
  * Sunday 23:59 local. No fake "expires in 3 minutes" pressure loops.
  */
-export function currentOffer() {
+export function currentOffer(offers = null) {
   const now = new Date();
   const end = new Date(now);
   end.setDate(now.getDate() + ((7 - now.getDay()) % 7));
@@ -287,12 +314,12 @@ export function currentOffer() {
   if (end <= now) end.setDate(end.getDate() + 7);
 
   const week = Math.floor(now.getTime() / (7 * 86400000));
-  const offers = [
+  const list = (offers && offers.length) ? offers : [
     { id: 'offer_pro_annual', title: 'Jyotish Pro Annual', discount: '40% off', note: 'Full varga export, unlimited AI synthesis, muhurat alerts.' },
     { id: 'offer_report', title: 'Detailed Life Report', discount: '2 for 1', note: 'A 40-page PDF covering every house, yoga and dasha.' },
     { id: 'offer_matching', title: 'Marriage Matching Bundle', discount: '30% off', note: 'Ashtakoota, Manglik analysis and remedial guidance.' },
   ];
-  return { ...offers[week % offers.length], endsAt: end };
+  return { ...list[week % list.length], endsAt: end };
 }
 
 export function formatCountdown(ms) {

@@ -471,6 +471,66 @@ ok('nav links still all resolve',
 ok('footer links all resolve',
   $$('.site-footer nav a[href^="#"]').every((a) => $(a.getAttribute('href'))));
 
+section('Content store drives the public site');
+
+// The public page must render from the content store, so admin edits are real.
+{
+  const Store = await import(pathToFileURL(resolve(webRoot, 'assets/js/admin/content.js')).href);
+  const c = Store.content();
+
+  ok('feature cards match the store', $$('.feature-card').length === c.features.length);
+  ok('first feature title comes from the store',
+    $('.feature-card h3').textContent.trim() === c.features[0].title);
+  ok('pricing cards match the store', $$('#pricingGrid .price-card').length === c.plans.length);
+  ok('first plan name comes from the store',
+    $('#pricingGrid .price-card h3').textContent.trim() === c.plans[0].name);
+  ok('testimonials match the store',
+    $$('#testimonialGrid .testimonial-card').length === c.testimonials.length);
+  ok('FAQs match the store', $$('#faqList .faq-item').length === c.faqs.length);
+  ok('first FAQ question comes from the store',
+    $('#faqList summary').textContent.trim() === c.faqs[0].q);
+  ok('hero headline comes from the store',
+    $('.hero h1').textContent.includes(c.hero.headline));
+  ok('hero lede comes from the store',
+    $('.hero .lede').textContent.trim() === c.hero.lede);
+  ok('hero stats match the store', $$('.hero-stats div').length === c.hero.stats.length);
+  ok('document title comes from the store', window.document.title === c.meta.title);
+  ok('brand name comes from the store',
+    $('.brand-text strong').textContent.trim() === c.meta.siteName);
+  ok('nav is built from the sections list',
+    $$('.site-nav a').length === c.sections.filter((x) => x.inNav && x.visible !== false).length);
+  ok('campaigns are drawn from the store',
+    $$('#campaignRail .campaign-card').every((el) =>
+      c.campaigns.some((x) => x.id === el.dataset.id)));
+}
+
+section('Analytics recorded from the public site');
+{
+  const An = await import(pathToFileURL(resolve(webRoot, 'assets/js/admin/analytics.js')).href);
+  const evs = An.events();
+  ok('a visit was recorded', evs.some((e) => e.t === 'visit'));
+  ok('the calculated chart was recorded', evs.some((e) => e.t === 'chart'));
+  ok('chart event stores only coarse facets', (() => {
+    const c = evs.find((e) => e.t === 'chart');
+    return c && Object.keys(c.d).sort().join(',') === 'asc,ay,moon';
+  })());
+  ok('section views were recorded', evs.some((e) => e.t === 'section'));
+
+  // Save-chart button feeds the admin panel's Saved Charts view.
+  const before = An.savedCharts().length;
+  $('#saveChartBtn').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+  await tick(60);
+  ok('save chart button stores a record', An.savedCharts().length === before + 1);
+  const rec = An.savedCharts()[0];
+  ok('saved record has a lagna', typeof rec.lagna === 'string' && rec.lagna.length > 3);
+  ok('saved record has a moon placement', typeof rec.moon === 'string');
+}
+
+section('Admin entry point');
+ok('footer links to the admin panel', !!$('.site-footer a[href="admin.html"]'));
+ok('admin link is marked nofollow',
+  $('.site-footer a[href="admin.html"]').getAttribute('rel') === 'nofollow');
+
 section('Runtime errors');
 const real = errors.filter((e) => !/offline in tests|Not implemented|Could not parse CSS/i.test(e));
 ok('no uncaught runtime errors', real.length === 0, real.slice(0, 3).join(' | '));

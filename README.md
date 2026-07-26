@@ -32,9 +32,19 @@ web/                      Static website (zero build step)
         places.js         Gazetteer, geocoding, historical timezones
     vendor/               astronomy-engine, three.js, OrbitControls
     img/                  Icons and social card
+  admin.html              Admin control panel
+  ADMIN.md                Admin panel guide
+  assets/js/admin/
+    admin.js              Panel controller and CRUD views
+    content.js            Content store: defaults, draft, validation
+    auth.js               PBKDF2 gate and GitHub token handling
+    github.js             Publishing client (GitHub Contents API)
+    analytics.js          Local, privacy-preserving usage stats
   tests/
     engine.test.mjs       175 astronomy assertions
-    dom.test.mjs          166 DOM integration assertions
+    dom.test.mjs          189 DOM integration assertions
+    admin.test.mjs        189 admin panel assertions
+    publish.test.mjs      24 publish + XSS regression assertions
     android.test.mjs      44 Kotlin source-consistency checks
 
 app/                      Android application (Kotlin + Jetpack Compose)
@@ -115,6 +125,13 @@ latitude and across the date line.
 - Notification centre fed by genuine sky events
 - Transparent pricing, testimonials and FAQ with structured data
 
+**Admin panel** (`/admin.html` — see [ADMIN.md](web/ADMIN.md))
+- Passphrase login (PBKDF2-SHA256, 210k iterations) with lockout on repeated failures
+- Full CRUD on features, campaigns, pricing, testimonials, FAQs and astrologers — create, edit, duplicate, reorder, delete
+- Hero copy, SEO metadata, section visibility, nav labels and brand colours
+- Dashboard with local usage stats and saved chart records
+- Publishes `content.json` straight to the repository via the GitHub API, with validation, conflict detection, commit history and one-click rollback
+
 **Platform**
 - Works offline once loaded; installable as a PWA
 - Light and dark themes
@@ -123,6 +140,18 @@ latitude and across the date line.
 - Keyboard accessible, labelled inputs, respects `prefers-reduced-motion`
 
 ---
+
+## Admin
+
+The site is content-driven: everything the landing page renders comes from
+`content.json`, editable through the panel at `/admin.html`.
+
+Default passphrase is `jyotish-admin` — **change it before deploying**.
+
+Because this is a static host, the passphrase is a deterrent rather than a
+cryptographic boundary; the real authorisation is a GitHub token that GitHub
+validates server-side, so nobody can change the live site without one.
+[ADMIN.md](web/ADMIN.md) explains the model in full.
 
 ## Privacy
 
@@ -138,16 +167,18 @@ The chart mathematics always runs locally, with or without a key.
 ## Development
 
 ```bash
-npm install          # only jsdom, for the DOM test suite
+npm install          # only jsdom, for the DOM test suites
 npm run dev          # serve web/ at http://localhost:8080
-npm test             # 385 assertions across three suites
+npm test             # 621 assertions across five suites
 ```
 
 Individual suites:
 
 ```bash
 npm run test:engine    # astronomy correctness
-npm run test:dom       # UI integration in jsdom
+npm run test:dom       # public site integration in jsdom
+npm run test:admin     # admin auth, CRUD and GitHub client
+npm run test:publish   # end-to-end: published content reaches the page
 npm run test:android   # Kotlin source consistency
 ```
 

@@ -11,6 +11,8 @@ import * as P from './engine/places.js';
 import * as V from './engine/events.js';
 import * as C from './charts.js';
 import * as M from './promo.js';
+import * as Store from './admin/content.js';
+import * as An from './admin/analytics.js';
 import { Planetarium, webglAvailable } from './planetarium.js';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -36,7 +38,12 @@ const state = {
    Boot
    ================================================================ */
 
-function boot() {
+async function boot() {
+  // Published content (content.json) overrides the shipped defaults.
+  try { await Store.loadContent({ withDraft: false }); } catch { /* defaults */ }
+  applyContent();
+  An.trackVisit();
+
   $('#year').textContent = new Date().getFullYear();
   initTheme();
   initNav();
@@ -60,6 +67,87 @@ function boot() {
   initFaq();
   initNotifications();
   restoreFromURL();
+}
+
+/* ================================================================
+   Content application — everything the admin panel can change
+   ================================================================ */
+
+/**
+ * Apply editable content to the DOM before the rest of the app boots.
+ * Runs against DEFAULTS when content.json is absent, so the site is never
+ * dependent on the admin panel having been used.
+ */
+function applyContent() {
+  const c = Store.content();
+
+  // --- meta ---
+  if (c.meta) {
+    if (c.meta.title) document.title = c.meta.title;
+    const d = $('meta[name="description"]');
+    if (d && c.meta.description) d.content = c.meta.description;
+    const ogT = $('meta[property="og:title"]');
+    if (ogT && c.meta.title) ogT.content = c.meta.title;
+    const ogD = $('meta[property="og:description"]');
+    if (ogD && c.meta.description) ogD.content = c.meta.description;
+    const bt = $('.brand-text strong');
+    if (bt && c.meta.siteName) bt.textContent = c.meta.siteName;
+    const bs = $('.brand-text small');
+    if (bs && c.meta.tagline) bs.textContent = c.meta.tagline;
+    if (c.meta.repoUrl) {
+      $$('a[href*="github.com"]').forEach((a) => { a.href = c.meta.repoUrl; });
+    }
+  }
+
+  // --- theme ---
+  if (c.theme) {
+    const root = document.documentElement;
+    const map = { gold: '--gold', plum: '--plum', void: '--void', panel: '--panel', text: '--text' };
+    for (const [k, v] of Object.entries(map)) {
+      if (c.theme[k]) root.style.setProperty(v, c.theme[k]);
+    }
+  }
+
+  // --- hero ---
+  if (c.hero) {
+    const h = c.hero;
+    setText('.hero .eyebrow', h.eyebrow);
+    const h1 = $('.hero h1');
+    if (h1 && h.headline) {
+      h1.innerHTML = `${escapeHTML(h.headline)}<br /><em>${escapeHTML(h.headlineEm || '')}</em>`;
+    }
+    setText('.hero .lede', h.lede);
+    const cta = $$('.hero-cta .btn');
+    if (cta[0] && h.ctaPrimary) { cta[0].textContent = h.ctaPrimary.label; cta[0].href = h.ctaPrimary.href; }
+    if (cta[1] && h.ctaSecondary) { cta[1].textContent = h.ctaSecondary.label; cta[1].href = h.ctaSecondary.href; }
+    const stats = $('.hero-stats');
+    if (stats && Array.isArray(h.stats) && h.stats.length) {
+      stats.innerHTML = h.stats.map((s) =>
+        `<div><dt data-count="${Number(s.value) || 0}">0</dt><dd>${escapeHTML(s.label)}</dd></div>`).join('');
+    }
+  }
+
+  // --- sections: visibility and nav ---
+  if (Array.isArray(c.sections)) {
+    for (const s of c.sections) {
+      const el = document.getElementById(s.id);
+      if (el) el.hidden = s.visible === false;
+    }
+    const nav = $('.site-nav');
+    if (nav) {
+      const items = c.sections.filter((s) => s.inNav && s.visible !== false);
+      if (items.length) {
+        nav.innerHTML = items.map((s) =>
+          `<a href="#${escapeHTML(s.id)}">${escapeHTML(s.nav || s.id)}</a>`).join('');
+      }
+    }
+  }
+}
+
+function setText(sel, value) {
+  if (value === undefined || value === null) return;
+  const el = $(sel);
+  if (el) el.textContent = value;
 }
 
 /* ---------------- theme ---------------- */
@@ -98,10 +186,15 @@ function initNav() {
   // Scroll spy
   const links = $$('.site-nav a');
   const sections = links.map((a) => $(a.getAttribute('href'))).filter(Boolean);
+  const seenSections = new Set();
   const spy = new IntersectionObserver((entries) => {
     for (const en of entries) {
       if (!en.isIntersecting) continue;
       links.forEach((l) => l.classList.toggle('is-active', l.getAttribute('href') === `#${en.target.id}`));
+      if (!seenSections.has(en.target.id)) {
+        seenSections.add(en.target.id);
+        An.trackSection(en.target.id);
+      }
     }
   }, { rootMargin: '-45% 0px -50% 0px' });
   sections.forEach((s) => spy.observe(s));
@@ -178,26 +271,15 @@ function initCounters() {
 
 /* ---------------- features ---------------- */
 
-const FEATURES = [
-  ['✦', 'High-Precision Birth Chart', 'Sub-arcminute sidereal positions from a VSOP87-class ephemeris, true lunar node and whole-sign houses.', '#kundli'],
-  ['◈', '16 Divisional Charts', 'D1 through D60 generated with the classical Parashari rules — Navamsa, Dasamsa, Shashtiamsa and more.', '#kundli'],
-  ['◷', 'Vimshottari Dasha', 'A full 120-year ladder to three levels, computed from your Moon nakshatra to the day.', '#dasha'],
-  ['❋', 'Live Vedic Panchang', 'Tithi, nakshatra, yoga, karana, sunrise, Rahu Kaal and Abhijit for your exact coordinates.', '#panchang'],
-  ['♁', '3D WebGL Planetarium', 'Real heliocentric positions rendered in an interactive scene you can orbit, zoom and scrub through time.', '#planetarium'],
-  ['♥', 'Ashtakoota Matching', 'All eight kootas scored to 36 points with Manglik dosha analysis from real Mars placement.', '#matching'],
-  ['◆', 'Graha Strength', 'A Shadbala-style score blending dignity, house, combustion, retrogression and directional power.', '#kundli'],
-  ['✧', 'Gemstone & Remedies', 'Targeted at your genuinely weakest grahas, with gems limited to functional benefics for your lagna.', '#remedies'],
-  ['☉', 'Chart Reasoning Engine', 'Ask questions in plain language and get answers derived from your placements, not generic text.', '#oracle'],
-];
-
 function initFeatureCards() {
   const grid = $('#featureGrid');
-  grid.innerHTML = FEATURES.map(([ico, title, text, href]) => `
+  const rows = Store.get('features') || [];
+  grid.innerHTML = rows.map((f) => `
     <article class="feature-card">
-      <div class="feature-ico" aria-hidden="true">${ico}</div>
-      <h3>${title}</h3>
-      <p>${text}</p>
-      <a class="feature-live" href="${href}">Try it live →</a>
+      <div class="feature-ico" aria-hidden="true">${escapeHTML(f.icon)}</div>
+      <h3>${escapeHTML(f.title)}</h3>
+      <p>${escapeHTML(f.text)}</p>
+      <a class="feature-live" href="${escapeHTML(f.href || '#kundli')}">Try it live →</a>
     </article>`).join('');
 
   grid.addEventListener('pointermove', (e) => {
@@ -339,7 +421,8 @@ function initBirthForm() {
     calculate();
   });
 
-  $('#printBtn').addEventListener('click', () => print());
+  $('#printBtn').addEventListener('click', () => { An.trackAction('print'); print(); });
+  $('#saveChartBtn').addEventListener('click', saveCurrentChart);
   $('#shareBtn').addEventListener('click', copyShareLink);
   $('#jsonBtn').addEventListener('click', downloadJSON);
 }
@@ -388,6 +471,12 @@ function calculate() {
       M.syncEventNotifications(state.events, state.chart);
       renderNotifications();
       if (state.repaintReferral) state.repaintReferral();
+
+      An.trackChart({
+        ayanamsa: chart.ayanamsaKey,
+        ascendantSign: chart.ascendantSign,
+        moonSign: chart.moonSign,
+      });
       if (!$('#nmName').value) $('#nmName').value = f.name;
       $('#nmDate').value = f.date;
       renderNumerology(f.name, f.date);
@@ -1061,6 +1150,7 @@ function showPlanetInfo(info) {
    ================================================================ */
 
 function copyShareLink() {
+  An.trackAction('share-link');
   const f = state.birthLocal;
   if (!f) return;
   const u = new URL(location.href);
@@ -1095,6 +1185,7 @@ function restoreFromURL() {
 }
 
 function downloadJSON() {
+  An.trackAction('download-json');
   const c = state.chart;
   if (!c) return;
   const out = {
@@ -1318,20 +1409,20 @@ function refreshCampaigns() {
     transits: state.chart ? E.transits(state.chart, new Date()) : null,
     events: state.events,
   };
-  const list = M.activeCampaigns(ctx).slice(0, 4);
+  const list = M.activeCampaigns(ctx, Store.get('campaigns')).slice(0, 4);
   rail.innerHTML = list.map((c) => `
-    <article class="campaign-card tone-${c.tone}" data-id="${c.id}">
-      <button class="cc-close" type="button" data-dismiss="${c.id}" aria-label="Dismiss">×</button>
+    <article class="campaign-card tone-${escapeHTML(c.tone)}" data-id="${escapeHTML(c.id)}">
+      <button class="cc-close" type="button" data-dismiss="${escapeHTML(c.id)}" aria-label="Dismiss">×</button>
       <span class="cc-badge">${escapeHTML(c.badge)}</span>
       <div class="cc-head">
-        <span class="cc-icon" aria-hidden="true">${c.icon}</span>
+        <span class="cc-icon" aria-hidden="true">${escapeHTML(c.icon)}</span>
         <div>
           <h3>${escapeHTML(c.title)}</h3>
           <p class="cc-sub">${escapeHTML(c.subtitle)}</p>
         </div>
       </div>
       <p>${escapeHTML(c.body)}</p>
-      <button class="btn btn-outline btn-sm" type="button" data-action="${c.action}" data-target="${c.target || ''}">${escapeHTML(c.cta)}</button>
+      <button class="btn btn-outline btn-sm" type="button" data-action="${escapeHTML(c.action)}" data-target="${escapeHTML(c.target || '')}">${escapeHTML(c.cta)}</button>
     </article>`).join('');
 }
 
@@ -1408,17 +1499,18 @@ function initRewards() {
   });
 
   // Streak
-  const st = M.touchStreak();
+  const ladder = Store.get('streakRewards');
+  const st = M.touchStreak(ladder);
   $('#streakCount').textContent = `${st.count} day${st.count === 1 ? '' : 's'}`;
   $('#streakBest').textContent = `Best: ${st.best}`;
-  $('#streakList').innerHTML = M.STREAK_REWARDS.map((r) => `
+  $('#streakList').innerHTML = (ladder || M.STREAK_REWARDS).map((r) => `
     <li class="${st.count >= r.days ? 'is-done' : ''}">
-      <span>${escapeHTML(r.label)}</span> <b>${r.days}d</b>
+      <span>${escapeHTML(r.label)}</span> <b>${Number(r.days) || 0}d</b>
     </li>`).join('');
   if (st.milestone) toast(`${st.count}-day streak — ${st.milestone.label} unlocked.`);
 
   // Weekly offer + live countdown
-  const offer = M.currentOffer();
+  const offer = M.currentOffer(Store.get('offers'));
   $('#offerTitle').textContent = offer.title;
   $('#offerDiscount').textContent = offer.discount;
   $('#offerNote').textContent = offer.note;
@@ -1483,7 +1575,7 @@ function renderNotifications() {
    ================================================================ */
 
 function initTestimonials() {
-  $('#testimonialGrid').innerHTML = M.TESTIMONIALS.map((t) => `
+  $('#testimonialGrid').innerHTML = (Store.get('testimonials') || []).map((t) => `
     <article class="testimonial-card">
       <blockquote>${escapeHTML(t.text)}</blockquote>
       <div class="tm-author">
@@ -1506,15 +1598,15 @@ function initPricing() {
 
 function renderPricing() {
   const per = state.billing;
-  $('#pricingGrid').innerHTML = M.PLANS.map((p) => {
-    const amount = p.price[per];
+  $('#pricingGrid').innerHTML = (Store.get('plans') || []).map((p) => {
+    const amount = per === 'annual' ? p.annual : p.monthly;
     return `
       <article class="price-card ${p.highlight ? 'is-featured' : ''}">
         ${p.highlight ? '<span class="price-flag">Most popular</span>' : ''}
         <h3>${escapeHTML(p.name)}</h3>
         <p class="price-tagline">${escapeHTML(p.tagline)}</p>
         <div class="price-amount">
-          <strong>${amount === 0 ? 'Free' : `$${amount}`}</strong>
+          <strong>${amount === 0 ? 'Free' : `$${Number(amount) || 0}`}</strong>
           ${amount === 0 ? '' : `<span>/ ${per === 'annual' ? 'year' : 'month'}</span>`}
         </div>
         <p class="price-period">${amount === 0
@@ -1529,7 +1621,8 @@ function renderPricing() {
 }
 
 function initFaq() {
-  $('#faqList').innerHTML = M.FAQS.map((f, i) => `
+  const faqs = Store.get('faqs') || [];
+  $('#faqList').innerHTML = faqs.map((f, i) => `
     <details class="faq-item" ${i === 0 ? 'open' : ''}>
       <summary>${escapeHTML(f.q)}</summary>
       <p>${escapeHTML(f.a)}</p>
@@ -1541,12 +1634,29 @@ function initFaq() {
   ld.textContent = JSON.stringify({
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: M.FAQS.map((f) => ({
+    mainEntity: faqs.map((f) => ({
       '@type': 'Question', name: f.q,
       acceptedAnswer: { '@type': 'Answer', text: f.a },
     })),
   });
   document.head.appendChild(ld);
+}
+
+/** Save a compact chart record locally so it appears in the admin panel. */
+function saveCurrentChart() {
+  if (!state.chart) return;
+  const c = state.chart, f = state.birthLocal;
+  An.saveChart({
+    label: f.name || '',
+    date: f.date,
+    time: f.time,
+    place: f.place.label,
+    lagna: `${E.SIGNS[c.ascendantSign].en} ${E.formatDMS(c.ascendant % 30)}`,
+    moon: `${c.planets.Moon.signName} · ${c.planets.Moon.nakshatra.name}`,
+    ayanamsa: c.ayanamsaKey,
+  });
+  An.trackAction('save-chart');
+  toast('Chart saved to this browser. Manage it in the admin panel.');
 }
 
 /* ================================================================

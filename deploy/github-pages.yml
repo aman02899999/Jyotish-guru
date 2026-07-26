@@ -32,6 +32,10 @@ jobs:
         run: node web/tests/engine.test.mjs
       - name: DOM integration tests
         run: node web/tests/dom.test.mjs
+      - name: Admin panel tests
+        run: node web/tests/admin.test.mjs
+      - name: End-to-end publish test
+        run: node web/tests/publish.test.mjs
       - name: Android source consistency
         run: node web/tests/android.test.mjs
 
