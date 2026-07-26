@@ -14,6 +14,9 @@ import * as M from './promo.js';
 import * as Store from './admin/content.js';
 import * as An from './admin/analytics.js';
 import { Planetarium, webglAvailable } from './planetarium.js';
+import { mountAccountUI } from './auth/ui.js';
+import * as Auth from './auth/auth.js';
+import * as Profile from './auth/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -66,7 +69,21 @@ async function boot() {
   initPricing();
   initFaq();
   initNotifications();
+  initAccounts();
   restoreFromURL();
+}
+
+/**
+ * Accounts are strictly additive: the astrology engine never waits on them and
+ * never fails because of them, so a blocked CDN or missing Firebase config
+ * costs the visitor nothing.
+ */
+function initAccounts() {
+  try {
+    mountAccountUI({ toast });
+  } catch (err) {
+    console.error('Account UI failed to mount', err);
+  }
 }
 
 /* ================================================================
@@ -1646,7 +1663,7 @@ function initFaq() {
 function saveCurrentChart() {
   if (!state.chart) return;
   const c = state.chart, f = state.birthLocal;
-  An.saveChart({
+  const record = {
     label: f.name || '',
     date: f.date,
     time: f.time,
@@ -1654,9 +1671,19 @@ function saveCurrentChart() {
     lagna: `${E.SIGNS[c.ascendantSign].en} ${E.formatDMS(c.ascendant % 30)}`,
     moon: `${c.planets.Moon.signName} · ${c.planets.Moon.nakshatra.name}`,
     ayanamsa: c.ayanamsaKey,
-  });
+  };
+
+  // Keep the existing admin-panel view working, and additionally file the
+  // chart under the signed-in account (or the anonymous bucket, which is
+  // adopted on first sign-in).
+  An.saveChart(record);
+  const u = Auth.user();
+  Profile.saveChart(u && u.uid, record);
+
   An.trackAction('save-chart');
-  toast('Chart saved to this browser. Manage it in the admin panel.');
+  toast(u
+    ? `Chart saved to your account, ${u.name.split(' ')[0]}.`
+    : 'Chart saved to this browser. Sign in to keep it with your account.');
 }
 
 /* ================================================================

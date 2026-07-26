@@ -6,11 +6,12 @@
   "type": "module",
   "scripts": {
     "dev": "python3 -m http.server 8080 --directory web",
-    "test": "node web/tests/engine.test.mjs && node web/tests/dom.test.mjs && node web/tests/admin.test.mjs && node web/tests/publish.test.mjs && node web/tests/android.test.mjs",
+    "test": "node web/tests/engine.test.mjs && node web/tests/dom.test.mjs && node web/tests/admin.test.mjs && node web/tests/auth.test.mjs && node web/tests/publish.test.mjs && node web/tests/android.test.mjs",
     "test:engine": "node web/tests/engine.test.mjs",
     "test:dom": "node web/tests/dom.test.mjs",
     "test:android": "node web/tests/android.test.mjs",
     "test:admin": "node web/tests/admin.test.mjs",
+    "test:auth": "node web/tests/auth.test.mjs",
     "test:publish": "node web/tests/publish.test.mjs"
   },
   "devDependencies": {

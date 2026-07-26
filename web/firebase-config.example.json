@@ -1,0 +1,9 @@
+{
+  "_readme": "Copy this file to web/firebase-config.json and fill in the values from the Firebase console (Project settings -> Your apps -> Web app -> SDK setup and configuration). These values are NOT secrets: the Firebase web apiKey is a public project identifier that ships in every Firebase app. Real protection comes from the Authorised domains list and your security rules, both enforced on Google's servers. Without this file the site works normally and the account button reports that sign-in is unavailable.",
+  "apiKey": "YOUR_API_KEY",
+  "authDomain": "YOUR_PROJECT.firebaseapp.com",
+  "projectId": "YOUR_PROJECT",
+  "appId": "YOUR_APP_ID",
+  "storageBucket": "YOUR_PROJECT.appspot.com",
+  "messagingSenderId": "YOUR_SENDER_ID"
+}
