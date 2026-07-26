@@ -24,8 +24,18 @@ let view = 'dashboard';
    ================================================================ */
 
 async function boot() {
-  await Auth.loadConfig();
-  await Store.loadContent();
+  // A failure in either of these must not leave the operator staring at a
+  // dead login form: fall back to defaults and carry on.
+  try {
+    await Auth.loadConfig();
+  } catch (err) {
+    console.error('Admin config failed to load', err);
+  }
+  try {
+    await Store.loadContent();
+  } catch (err) {
+    console.error('Content failed to load', err);
+  }
 
   $('#loginForm').addEventListener('submit', onLogin);
   $('#logoutBtn').addEventListener('click', () => {
@@ -53,9 +63,17 @@ async function onLogin(e) {
   const btn = $('#loginBtn');
   btn.disabled = true;
   btn.textContent = 'Verifying…';
-  const res = await Auth.login($('#passInput').value);
-  btn.disabled = false;
-  btn.textContent = 'Unlock panel';
+  let res;
+  try {
+    res = await Auth.login($('#passInput').value);
+  } catch (err) {
+    // e.g. WebCrypto unavailable over plain HTTP. Never strand the button.
+    console.error('Login failed', err);
+    res = { ok: false, error: 'Could not verify the passphrase. A secure (HTTPS) connection is required.' };
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Unlock panel';
+  }
   if (!res.ok) {
     showLoginError(res.error);
     $('#passInput').select();
@@ -119,14 +137,29 @@ const VIEWS = {
 };
 
 function show(name) {
-  view = name;
-  const [title, sub, fn] = VIEWS[name] || VIEWS.dashboard;
+  const known = Object.prototype.hasOwnProperty.call(VIEWS, name);
+  view = known ? name : 'dashboard';
+  const [title, sub, fn] = VIEWS[view];
   $('#viewTitle').textContent = title;
   $('#viewSub').textContent = sub;
-  $$('#sideNav button').forEach((b) => b.classList.toggle('is-active', b.dataset.view === name));
-  $('#adminContent').innerHTML = '';
-  fn();
-  $('#adminContent').scrollTop = 0;
+  $$('#sideNav button').forEach((b) => b.classList.toggle('is-active', b.dataset.view === view));
+  const host = $('#adminContent');
+  host.innerHTML = '';
+  try {
+    fn();
+  } catch (err) {
+    // One malformed collection must not take down the whole panel — show the
+    // error inline and keep navigation usable.
+    console.error(`Admin view "${view}" failed to render`, err);
+    host.innerHTML = `
+      <section class="card">
+        <h3>This view could not be displayed</h3>
+        <p class="muted">${esc(err && err.message ? err.message : String(err))}</p>
+        <p class="muted small">Your other sections are unaffected. If this persists,
+           export your local data from the Dashboard before making further changes.</p>
+      </section>`;
+  }
+  host.scrollTop = 0;
 }
 
 function refreshDraftPill() {
@@ -145,8 +178,20 @@ function renderDashboard() {
   const s = An.summary(30);
   const max = Math.max(...s.series.map((x) => x.count), 1);
 
+  const problems = Store.issues();
+
   const el = $('#adminContent');
   el.innerHTML = `
+    ${problems.length ? `
+    <section class="card" id="contentIssues">
+      <h3>⚠ Content warnings</h3>
+      <ul class="muted small">
+        ${problems.map((p) => `<li>${esc(p)}</li>`).join('')}
+      </ul>
+      <p class="muted small">Affected sections fell back to their shipped defaults,
+         so the live site still renders correctly.</p>
+    </section>` : ''}
+
     <div class="stat-row">
       ${statCard('Visits', s.visits, 'last 30 days')}
       ${statCard('Charts calculated', s.charts, 'non-identifying facets only')}
@@ -1147,15 +1192,31 @@ function confirmDialog(title, body, onOk) {
   $('#confirmBody').textContent = body;
   modal.hidden = false;
 
+  const ok = $('#confirmOk'), cancel = $('#confirmCancel');
+
   const close = () => {
     modal.hidden = true;
     ok.removeEventListener('click', run);
     cancel.removeEventListener('click', close);
+    modal.removeEventListener('click', onBackdrop);
+    document.removeEventListener('keydown', onKey);
   };
-  const run = () => { close(); onOk(); };
-  const ok = $('#confirmOk'), cancel = $('#confirmCancel');
+  const run = () => {
+    close();
+    // A throwing callback used to leave the modal listeners detached but the
+    // error unreported; close first, then surface any failure as a toast.
+    try { onOk(); } catch (err) {
+      console.error('Confirm action failed', err);
+      toast(err && err.message ? err.message : 'Action failed.', true);
+    }
+  };
+  const onBackdrop = (e) => { if (e.target === modal) close(); };
+  const onKey = (e) => { if (e.key === 'Escape') close(); };
+
   ok.addEventListener('click', run);
   cancel.addEventListener('click', close);
+  modal.addEventListener('click', onBackdrop);
+  document.addEventListener('keydown', onKey);
 }
 
 function download(name, text) {
