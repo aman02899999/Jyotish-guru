@@ -1,0 +1,56 @@
+name: Deploy website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/deploy-web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test dependencies
+        run: npm ci --no-audit --no-fund || npm install --no-audit --no-fund
+      - name: Astronomy engine tests
+        run: node web/tests/engine.test.mjs
+      - name: DOM integration tests
+        run: node web/tests/dom.test.mjs
+      - name: Admin panel tests
+        run: node web/tests/admin.test.mjs
+      - name: End-to-end publish test
+        run: node web/tests/publish.test.mjs
+      - name: Android source consistency
+        run: node web/tests/android.test.mjs
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: test
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web
+      - id: deployment
+        uses: actions/deploy-pages@v4

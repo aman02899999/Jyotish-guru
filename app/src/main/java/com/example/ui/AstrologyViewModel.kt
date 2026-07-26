@@ -71,6 +71,9 @@ enum class CampaignActionType {
     DISMISS
 }
 
+/** A daily-streak milestone and the feature it unlocks. */
+data class StreakReward(val days: Int, val id: String, val label: String)
+
 data class MarketingCampaign(
     val id: String,
     val title: String,
@@ -108,6 +111,16 @@ enum class Screen {
 }
 
 class AstrologyViewModel(application: Application) : AndroidViewModel(application) {
+
+    companion object {
+        val STREAK_REWARDS = listOf(
+            StreakReward(3, "streak_3", "Extended daily reading"),
+            StreakReward(7, "streak_7", "Full varga chart set (D1-D60)"),
+            StreakReward(14, "streak_14", "Five-level dasha depth"),
+            StreakReward(30, "streak_30", "Lifetime Pro report export")
+        )
+    }
+
 
     private val database = AppDatabase.getDatabase(application)
     private val repository = AstrologyRepository(database.astrologyDao())
@@ -323,6 +336,68 @@ class AstrologyViewModel(application: Application) : AndroidViewModel(applicatio
         _selectedPanchangDate.value = dateStr
         val lang = userProfile.value?.preferredLanguage ?: "Hinglish"
         _currentPanchang.value = calculatePanchang(dateStr, lang)
+    }
+
+    // ------------------------------------------------------------------
+    // Daily engagement streak
+    //
+    // Mirrors the reward ladder on the web landing page so both surfaces
+    // unlock the same features at the same milestones.
+    // ------------------------------------------------------------------
+
+    private val _streakToast = MutableStateFlow<String?>(null)
+    val streakToast: StateFlow<String?> = _streakToast.asStateFlow()
+
+    fun clearStreakToast() { _streakToast.value = null }
+
+    /** Register today's visit and unlock any milestone reached. */
+    fun touchDailyStreak() {
+        viewModelScope.launch {
+            val profile = repository.getUserProfileDirect() ?: return@launch
+            val fmt = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.US)
+            val today = fmt.format(java.util.Date())
+            if (profile.streakLastDay == today) return@launch
+
+            val yesterday = fmt.format(java.util.Date(System.currentTimeMillis() - 86_400_000L))
+            val newCount = if (profile.streakLastDay == yesterday) profile.streakCount + 1 else 1
+            val newBest = maxOf(profile.streakBest, newCount)
+
+            val milestone = STREAK_REWARDS.firstOrNull { it.days == newCount }
+            val unlocked = if (milestone != null && !profile.unlockedRewards.contains(milestone.id)) {
+                listOf(profile.unlockedRewards, milestone.id).filter { it.isNotBlank() }.joinToString(",")
+            } else profile.unlockedRewards
+
+            repository.saveUserProfile(
+                profile.copy(
+                    streakCount = newCount,
+                    streakBest = newBest,
+                    streakLastDay = today,
+                    unlockedRewards = unlocked
+                )
+            )
+
+            if (milestone != null) {
+                _streakToast.value = "$newCount-day streak! ${milestone.label} unlocked."
+                addNotification(
+                    title = "$newCount-Day Streak \uD83D\uDD25",
+                    message = "${milestone.label} is now unlocked in your account.",
+                    type = NotificationType.GENERAL
+                )
+            }
+        }
+    }
+
+    fun hasReward(profile: UserProfile?, id: String): Boolean =
+        profile?.unlockedRewards?.split(",")?.contains(id) == true
+
+    /** Deterministic shareable referral code, identical in shape to the web app. */
+    fun referralCodeFor(profile: UserProfile?): String {
+        val raw = (profile?.name ?: "").uppercase(java.util.Locale.US).replace("[^A-Z0-9]".toRegex(), "")
+        val base = if (raw.isBlank()) "SEEKER" else raw.take(8)
+        val seed = (profile?.phone ?: "0000")
+        var h = 0
+        for (ch in seed) h = (h * 31 + ch.code) and 0x7fffffff
+        return "ADI-$base-${1000 + (h % 9000)}"
     }
 
     fun triggerDailyPanchangReminder() {

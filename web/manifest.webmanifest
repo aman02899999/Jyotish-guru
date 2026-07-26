@@ -1,0 +1,16 @@
+{
+  "name": "Adi Jyotish Gurus",
+  "short_name": "Jyotish",
+  "description": "Authentic Vedic astrology with a real in-browser sidereal ephemeris, 3D planetarium and full kundli analysis.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0a0713",
+  "theme_color": "#0a0713",
+  "orientation": "any",
+  "categories": ["lifestyle", "education", "utilities"],
+  "icons": [
+    { "src": "assets/img/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/img/app-icon.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}
