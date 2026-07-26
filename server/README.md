@@ -1,4 +1,9 @@
-# Adi Jyotish Gurus - Web
+# Adi Jyotish Gurus — Full-stack server (legacy / reference)
+
+> **Note:** This is the legacy full-stack Next.js app, kept for reference and
+> for its API / Razorpay / wallet work. It is **not** what production serves —
+> the live site is the zero-build static site in [`../web/`](../web/). All
+> paths below are relative to this `server/` directory.
 
 A full-stack web version of the Adi Jyotish Gurus Android app: an AI-powered
 Vedic astrology consultation platform. Built with Next.js (App Router),
@@ -41,7 +46,7 @@ fabricated reviews/testimonials (see "Reviews" below).
 ## Getting started
 
 ```bash
-cd web
+cd server
 npm install
 cp .env.example .env
 # Edit .env: set DATABASE_URL/DATABASE_URL_DIRECT (see "Database" below),

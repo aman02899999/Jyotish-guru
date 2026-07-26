@@ -1,7 +1,8 @@
 {
-  "name": "web",
+  "name": "adi-jyotish-gurus-server",
   "version": "0.1.0",
   "private": true,
+  "description": "Optional full-stack backend for Adi Jyotish Gurus (legacy Next.js + Prisma + NextAuth + Razorpay). Not what production serves — the live site is the zero-build static app in ../web.",
   "scripts": {
     "dev": "next dev",
     "postinstall": "prisma generate",
