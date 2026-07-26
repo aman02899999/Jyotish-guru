@@ -1,0 +1,18 @@
+{
+  "name": "adi-jyotish-gurus-web",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vedic astrology website with a real in-browser sidereal ephemeris, 3D planetarium and full kundli analysis.",
+  "type": "module",
+  "scripts": {
+    "dev": "python3 -m http.server 8080 --directory web",
+    "test": "node web/tests/engine.test.mjs && node web/tests/dom.test.mjs && node web/tests/android.test.mjs",
+    "test:engine": "node web/tests/engine.test.mjs",
+    "test:dom": "node web/tests/dom.test.mjs",
+    "test:android": "node web/tests/android.test.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^25.0.1"
+  },
+  "license": "MIT"
+}

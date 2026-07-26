@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Adi Jyotish Gurus — Ancient Wisdom. Modern Intelligence.</title>
+<meta name="description" content="Authentic Vedic astrology powered by a real in-browser ephemeris. High-precision kundli, 16 divisional charts, Vimshottari dasha, live panchang, Ashtakoota matching and an interactive 3D planetarium." />
+<meta name="theme-color" content="#0a0713" />
+<meta name="color-scheme" content="dark" />
+
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Adi Jyotish Gurus — Ancient Wisdom. Modern Intelligence." />
+<meta property="og:description" content="Real sidereal calculations in your browser. Kundli, dasha, panchang, matching and a 3D navagraha planetarium." />
+<meta property="og:image" content="assets/img/og-cover.png" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="icon" href="assets/img/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="assets/img/app-icon.png" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/styles.css" />
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Adi Jyotish Gurus",
+  "applicationCategory": "LifestyleApplication",
+  "operatingSystem": "Web, Android",
+  "description": "Vedic astrology platform with a real in-browser sidereal ephemeris, 16 divisional charts, Vimshottari dasha, panchang and a WebGL planetarium.",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+}
+</script>
+</head>
+<body>
+<a class="skip-link" href="#kundli">Skip to the chart calculator</a>
+
+<div class="cosmic-bg" aria-hidden="true">
+  <div class="cb-nebula cb-1"></div>
+  <div class="cb-nebula cb-2"></div>
+  <div class="cb-nebula cb-3"></div>
+  <canvas id="starfield"></canvas>
+  <div class="cb-grid"></div>
+</div>
+
+<!-- ================= HEADER ================= -->
+<header class="site-header" id="top">
+  <a class="brand" href="#top" aria-label="Adi Jyotish Gurus home">
+    <span class="brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 48 48" width="34" height="34"><use href="assets/img/sprite.svg#logo"></use></svg>
+    </span>
+    <span class="brand-text">
+      <strong>Adi Jyotish Gurus</strong>
+      <small>Vedic Astronomy Engine v4.0</small>
+    </span>
+  </a>
+
+  <nav class="site-nav" aria-label="Primary">
+    <a href="#planetarium">Planetarium</a>
+    <a href="#kundli">Kundli</a>
+    <a href="#dasha">Dasha</a>
+    <a href="#panchang">Panchang</a>
+    <a href="#events">Sky</a>
+    <a href="#muhurat">Muhurat</a>
+    <a href="#matching">Matching</a>
+    <a href="#oracle">Oracle</a>
+    <a href="#pricing">Pricing</a>
+  </nav>
+
+  <div class="header-actions">
+    <button class="bell" id="bellBtn" type="button" aria-label="Notifications" aria-expanded="false">
+      <span aria-hidden="true">🔔</span>
+      <i class="bell-dot" id="bellDot" hidden></i>
+    </button>
+    <div class="bell-panel" id="bellPanel" hidden>
+      <div class="bell-head">
+        <strong>Notifications</strong>
+        <button type="button" id="bellClear" class="bell-clear">Clear all</button>
+      </div>
+      <div class="bell-list" id="bellList"></div>
+    </div>
+    <button class="btn btn-ghost btn-sm" id="themeToggle" type="button" aria-label="Toggle light and dark theme">
+      <span class="ico-sun" aria-hidden="true">☀</span><span class="ico-moon" aria-hidden="true">☾</span>
+    </button>
+    <a class="btn btn-primary btn-sm" href="#kundli">Free Reading</a>
+    <button class="nav-toggle" id="navToggle" type="button" aria-label="Open menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<main>
+<!-- ================= HERO ================= -->
+<section class="hero" id="hero">
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <span class="eyebrow reveal">Vedic Astronomy Engine v4.0</span>
+      <h1 class="reveal">Ancient Wisdom.<br /><em>Modern Intelligence.</em></h1>
+      <p class="lede reveal">
+        Authentic Vedic astrology computed live in your browser from a
+        sub-arcminute ephemeris — no sample data, no server round trip.
+        Enter your birth details and every number on this page recalculates
+        for <em>you</em>.
+      </p>
+      <div class="hero-cta reveal">
+        <a class="btn btn-primary btn-lg" href="#kundli">Start Free Reading</a>
+        <a class="btn btn-outline btn-lg" href="#planetarium">Explore the Planetarium</a>
+      </div>
+      <dl class="hero-stats reveal">
+        <div><dt data-count="9">0</dt><dd>Grahas tracked live</dd></div>
+        <div><dt data-count="16">0</dt><dd>Divisional charts</dd></div>
+        <div><dt data-count="27">0</dt><dd>Nakshatras mapped</dd></div>
+        <div><dt data-count="120">0</dt><dd>Year dasha ladder</dd></div>
+      </dl>
+    </div>
+
+    <!-- Live chart preview card -->
+    <aside class="hero-card reveal" aria-label="Live chart engine preview">
+      <div class="hc-head">
+        <div>
+          <h2>Live Chart Engine</h2>
+          <p id="hcAscLine">Computing your local sky…</p>
+        </div>
+        <span class="pill pill-live"><i></i>Live</span>
+      </div>
+
+      <div class="hc-chart">
+        <svg id="heroKundli" class="kundli" role="img" aria-label="Live North Indian kundli"></svg>
+        <div class="hc-side">
+          <div class="hc-stat"><span>Ascendant</span><strong id="hcAsc">—</strong></div>
+          <div class="hc-stat"><span>Moon sign</span><strong id="hcMoon">—</strong></div>
+          <div class="hc-stat"><span>Nakshatra</span><strong id="hcNak">—</strong></div>
+          <div class="hc-stat"><span>Tithi</span><strong id="hcTithi">—</strong></div>
+        </div>
+      </div>
+
+      <div class="hc-foot">
+        <div class="hc-dasha">
+          <span>Running period</span>
+          <strong id="hcDasha">—</strong>
+          <div class="hc-progress"><i id="hcProgress" style="width:0%"></i></div>
+        </div>
+        <a class="hc-link" href="#kundli">Open full chart →</a>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Contextual campaign rail — populated from real chart/sky context -->
+  <div class="campaign-rail" id="campaignRail" aria-label="Offers and alerts"></div>
+
+  <a class="scroll-hint" href="#planetarium"><span>Scroll to explore</span><i></i></a>
+</section>
+
+<!-- ================= 3D PLANETARIUM ================= -->
+<section class="section section-planetarium" id="planetarium">
+  <div class="section-head">
+    <span class="eyebrow">Real-Time WebGL Planetarium</span>
+    <h2>Walk Through the Navagraha in Three Dimensions</h2>
+    <p>Every sphere is placed by the same sidereal engine that builds your kundli.
+       Drag to orbit, scroll to zoom, click a graha to read its karakatva.</p>
+  </div>
+
+  <div class="planetarium-shell">
+    <canvas id="skyCanvas" aria-label="Interactive 3D solar system"></canvas>
+
+    <div class="pl-loading" id="plLoading"><span class="spinner"></span>Building the sky…</div>
+    <noscript><div class="pl-fallback">Enable JavaScript to view the interactive planetarium.</div></noscript>
+
+    <div class="pl-hud pl-hud-top">
+      <div class="pl-date">
+        <span>Simulated date</span>
+        <strong id="plDate">—</strong>
+      </div>
+      <div class="pl-chip" id="plAyanamsa">Lahiri</div>
+    </div>
+
+    <div class="pl-controls">
+      <button class="pl-btn" id="plPlay" type="button" aria-pressed="true">
+        <span class="pl-ico-pause">❚❚</span><span class="pl-ico-play">▶</span>
+        <em id="plPlayLbl">Pause</em>
+      </button>
+      <label class="pl-slider">
+        <span>Speed <b id="plSpeedVal">1.0×</b></span>
+        <input type="range" id="plSpeed" min="-60" max="60" step="1" value="6" aria-label="Simulation speed" />
+      </label>
+      <div class="pl-toggles">
+        <label><input type="checkbox" id="plOrbits" checked /><span>Orbits</span></label>
+        <label><input type="checkbox" id="plLabels" checked /><span>Labels</span></label>
+        <label><input type="checkbox" id="plZodiac" checked /><span>Zodiac</span></label>
+      </div>
+      <div class="pl-views" role="group" aria-label="Camera presets">
+        <button type="button" data-view="ecliptic" class="is-active">Ecliptic</button>
+        <button type="button" data-view="top">Bird's eye</button>
+        <button type="button" data-view="close">Close orbit</button>
+        <button type="button" data-view="wide">Wide</button>
+      </div>
+      <button class="pl-btn pl-now" id="plNow" type="button">Reset to now</button>
+    </div>
+
+    <aside class="pl-info" id="plInfo" hidden>
+      <button class="pl-info-close" id="plInfoClose" type="button" aria-label="Close">×</button>
+      <h3><span id="plInfoGlyph"></span><span id="plInfoName"></span></h3>
+      <p class="pl-info-sa" id="plInfoSa"></p>
+      <dl id="plInfoBody"></dl>
+    </aside>
+  </div>
+</section>
+
+<!-- ================= KUNDLI CALCULATOR ================= -->
+<section class="section" id="kundli">
+  <div class="section-head">
+    <span class="eyebrow">High-Precision Birth Chart</span>
+    <h2>Your Kundli, Calculated Not Guessed</h2>
+    <p>Sidereal positions from a VSOP87-class ephemeris, true lunar node,
+       whole-sign houses and all 16 vargas — computed on your device.</p>
+  </div>
+
+  <form class="birth-form" id="birthForm" autocomplete="off">
+    <div class="field">
+      <label for="bName">Full name</label>
+      <input type="text" id="bName" name="name" placeholder="Your name" value="" />
+    </div>
+    <div class="field">
+      <label for="bDate">Date of birth</label>
+      <input type="date" id="bDate" name="date" required value="1995-08-15" min="1800-01-01" max="2100-12-31" />
+    </div>
+    <div class="field">
+      <label for="bTime">Time of birth</label>
+      <input type="time" id="bTime" name="time" required value="10:30" step="60" />
+      <small>Exact minute matters — the lagna moves ~1° every 4 minutes.</small>
+    </div>
+    <div class="field field-place">
+      <label for="bPlace">Place of birth</label>
+      <input type="text" id="bPlace" name="place" placeholder="Start typing a city…" value="New Delhi, India"
+             role="combobox" aria-expanded="false" aria-controls="placeList" aria-autocomplete="list" />
+      <ul class="place-list" id="placeList" role="listbox" hidden></ul>
+      <small id="placeMeta">28.6139°N, 77.2090°E · Asia/Kolkata</small>
+    </div>
+    <div class="field field-inline">
+      <label for="bAyan">Ayanamsa</label>
+      <select id="bAyan" name="ayanamsa">
+        <option value="lahiri" selected>Lahiri (Chitrapaksha)</option>
+        <option value="raman">B. V. Raman</option>
+        <option value="kp">Krishnamurti (KP)</option>
+      </select>
+    </div>
+    <div class="field field-inline">
+      <label for="bStyle">Chart style</label>
+      <select id="bStyle" name="style">
+        <option value="north" selected>North Indian</option>
+        <option value="south">South Indian</option>
+      </select>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary btn-lg" type="submit" id="calcBtn">Calculate my chart</button>
+      <button class="btn btn-ghost" type="button" id="useNow">Use current moment</button>
+    </div>
+  </form>
+
+  <div class="results" id="results" hidden>
+    <!-- Summary strip -->
+    <div class="summary-strip" id="summaryStrip"></div>
+
+    <div class="chart-grid">
+      <div class="panel panel-chart">
+        <div class="panel-head">
+          <h3 id="vargaTitle">D1 Rasi — Birth Chart</h3>
+          <div class="varga-picker" id="vargaPicker"></div>
+        </div>
+        <svg id="mainKundli" class="kundli kundli-lg" role="img" aria-label="Birth chart"></svg>
+        <p class="panel-note" id="vargaUse">Body, life, overall destiny</p>
+      </div>
+
+      <div class="panel panel-wheel">
+        <div class="panel-head"><h3>Degree Wheel</h3></div>
+        <svg id="wheel" class="wheel" role="img" aria-label="Circular zodiac wheel"></svg>
+        <p class="panel-note">Exact sidereal degrees, ascendant axis in gold.</p>
+      </div>
+
+      <div class="panel panel-strength">
+        <div class="panel-head"><h3>Graha Strength</h3></div>
+        <div class="bars" id="strengthBars"></div>
+        <p class="panel-note">Blends dignity, house, combustion and motion.</p>
+      </div>
+    </div>
+
+    <!-- Planet table -->
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Planetary Positions</h3>
+        <span class="panel-sub" id="ayanamsaNote"></span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="planetTable">
+          <thead>
+            <tr><th>Graha</th><th>Sign</th><th>Degree</th><th>Nakshatra</th><th>Pada</th><th>House</th><th>Dignity</th><th>Motion</th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Readings -->
+    <div class="reading-grid">
+      <article class="panel reading-card" id="lagnaCard"></article>
+      <article class="panel reading-card" id="moonCard"></article>
+      <article class="panel reading-card" id="sunCard"></article>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Life Areas</h3><span class="panel-sub">Derived from house lords, occupants and karakas</span></div>
+      <div class="area-grid" id="areaGrid"></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head"><h3>Yogas Present in Your Chart</h3></div>
+      <div class="yoga-list" id="yogaList"></div>
+    </div>
+
+    <details class="panel panel-details">
+      <summary><h3>House-by-House Analysis</h3></summary>
+      <div class="house-grid" id="houseGrid"></div>
+    </details>
+
+    <details class="panel panel-details">
+      <summary><h3>All Nine Graha Readings</h3></summary>
+      <div class="planet-readings" id="planetReadings"></div>
+    </details>
+
+    <div class="result-actions">
+      <button class="btn btn-outline" id="printBtn" type="button">Export / Print report</button>
+      <button class="btn btn-outline" id="shareBtn" type="button">Copy shareable link</button>
+      <button class="btn btn-outline" id="jsonBtn" type="button">Download JSON</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DASHA ================= -->
+<section class="section" id="dasha">
+  <div class="section-head">
+    <span class="eyebrow">Interactive Astrometry</span>
+    <h2>Feel the Rhythm of Your Vimshottari Cycle</h2>
+    <p>Drag the timeline to any year and watch the dasha ladder, transits and
+       planetary positions recompute for that exact moment.</p>
+  </div>
+
+  <div class="dasha-shell" id="dashaShell">
+    <div class="panel">
+      <div class="panel-head">
+        <h3>120-Year Mahadasha Ladder</h3>
+        <span class="panel-sub" id="dashaBirth"></span>
+      </div>
+      <div class="dasha-ribbon" id="dashaRibbon"></div>
+
+      <div class="time-scrub">
+        <input type="range" id="timeScrub" min="0" max="100" value="0" step="0.05" aria-label="Scrub through time" />
+        <div class="scrub-labels" id="scrubLabels"></div>
+      </div>
+
+      <div class="scrub-readout">
+        <div><span>Viewing</span><strong id="scrubDate">—</strong></div>
+        <div><span>Mahadasha</span><strong id="scrubMaha">—</strong></div>
+        <div><span>Antardasha</span><strong id="scrubAntar">—</strong></div>
+        <div><span>Pratyantar</span><strong id="scrubPraty">—</strong></div>
+      </div>
+    </div>
+
+    <div class="dasha-cols">
+      <article class="panel" id="dashaNarrative"></article>
+      <article class="panel">
+        <div class="panel-head"><h3>Live Transits</h3><span class="panel-sub" id="transitDate"></span></div>
+        <div class="transit-list" id="transitList"></div>
+      </article>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <h3>Timing Windows</h3>
+        <div class="seg-control" id="timingSeg" role="group" aria-label="Timing area">
+          <button type="button" data-area="career" class="is-active">Career</button>
+          <button type="button" data-area="wealth">Wealth</button>
+          <button type="button" data-area="marriage">Marriage</button>
+          <button type="button" data-area="property">Property</button>
+        </div>
+      </div>
+      <div class="forecast" id="forecast"></div>
+      <p class="forecast-note" id="forecastNote">Hover a bar to read the period's logic.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PANCHANG ================= -->
+<section class="section" id="panchang">
+  <div class="section-head">
+    <span class="eyebrow">Live Vedic Panchang</span>
+    <h2>Today's Sky, Where You Are</h2>
+    <p>Tithi, nakshatra, yoga, karana, sunrise, Rahu Kaal and Abhijit muhurat —
+       computed for your coordinates, updating in real time.</p>
+  </div>
+
+  <div class="panchang-shell">
+    <div class="panel panchang-main">
+      <div class="panel-head">
+        <h3 id="panchangPlace">—</h3>
+        <div class="panchang-controls">
+          <input type="date" id="panDate" aria-label="Panchang date" />
+          <button class="btn btn-ghost btn-sm" id="panToday" type="button">Today</button>
+        </div>
+      </div>
+      <div class="panchang-grid" id="panchangGrid"></div>
+    </div>
+
+    <div class="panel panchang-side">
+      <div class="panel-head"><h3>Muhurat Windows</h3></div>
+      <div class="muhurat-list" id="muhuratList"></div>
+      <div class="moon-visual">
+        <svg id="moonPhase" viewBox="0 0 100 100" role="img" aria-label="Moon phase"></svg>
+        <div>
+          <strong id="moonPhaseName">—</strong>
+          <span id="moonIllum">—</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel" id="horoscopePanel">
+    <div class="panel-head">
+      <h3>Your Daily Reading</h3>
+      <span class="panel-sub">From live transits against your natal chart</span>
+    </div>
+    <div class="horoscope" id="horoscope">
+      <p class="muted">Calculate your chart above to unlock a personalised daily reading.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= SKY EVENTS CALENDAR ================= -->
+<section class="section" id="events">
+  <div class="section-head">
+    <span class="eyebrow">Computed Sky Calendar</span>
+    <h2>Every Retrograde, Sankranti and Eclipse Ahead</h2>
+    <p>Found by scanning real planetary motion — stations are bisected to the
+       minute, not copied from a table. Calculate your chart to see which house
+       each event lands in.</p>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Next 6 Months</h3>
+      <div class="seg-control" id="eventFilter" role="group" aria-label="Filter events">
+        <button type="button" data-kind="all" class="is-active">All</button>
+        <button type="button" data-kind="retrograde">Retrograde</button>
+        <button type="button" data-kind="ingress">Sankranti</button>
+        <button type="button" data-kind="eclipse">Eclipse</button>
+        <button type="button" data-kind="moon">Moon</button>
+      </div>
+    </div>
+    <div class="event-list" id="eventList">
+      <p class="muted">Scanning the ephemeris…</p>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MUHURAT FINDER ================= -->
+<section class="section" id="muhurat">
+  <div class="section-head">
+    <span class="eyebrow">Electional Astrology</span>
+    <h2>Find Your Auspicious Date</h2>
+    <p>Every day in the range is scored on nakshatra, tithi, weekday lord and —
+       once your chart is loaded — the transiting Moon against your natal Moon.</p>
+  </div>
+
+  <div class="panel">
+    <form class="muhurat-form" id="muhuratForm">
+      <div class="field">
+        <label for="mhActivity">Activity</label>
+        <select id="mhActivity"></select>
+      </div>
+      <div class="field">
+        <label for="mhFrom">Start from</label>
+        <input type="date" id="mhFrom" />
+      </div>
+      <div class="field">
+        <label for="mhDays">Search window</label>
+        <select id="mhDays">
+          <option value="30">Next 30 days</option>
+          <option value="60">Next 60 days</option>
+          <option value="90" selected>Next 90 days</option>
+          <option value="180">Next 6 months</option>
+        </select>
+      </div>
+      <button class="btn btn-primary" type="submit">Find best dates</button>
+    </form>
+    <div class="muhurat-results" id="muhuratResults"></div>
+  </div>
+</section>
+
+<!-- ================= NUMEROLOGY ================= -->
+<section class="section" id="numerology">
+  <div class="section-head">
+    <span class="eyebrow">Vedic Numerology</span>
+    <h2>Your Mulank, Bhagyank and Name Vibration</h2>
+    <p>Chaldean letter values and date reduction, mapped to their ruling grahas —
+       the companion system Indian astrologers read alongside the kundli.</p>
+  </div>
+
+  <div class="panel">
+    <form class="numero-form" id="numeroForm">
+      <div class="field">
+        <label for="nmName">Full name</label>
+        <input type="text" id="nmName" placeholder="Your full name" />
+      </div>
+      <div class="field">
+        <label for="nmDate">Date of birth</label>
+        <input type="date" id="nmDate" value="1995-08-15" />
+      </div>
+      <button class="btn btn-primary" type="submit">Calculate numbers</button>
+    </form>
+    <div class="numero-results" id="numeroResults"></div>
+  </div>
+</section>
+
+<!-- ================= FEATURES ================= -->
+<section class="section" id="features">
+  <div class="section-head">
+    <span class="eyebrow">Editorial Feature Suite</span>
+    <h2>Precision Engineering Meets Sacred Geometry</h2>
+    <p>Every module below is live on this page — not a screenshot, not a promise.</p>
+  </div>
+  <div class="feature-grid" id="featureGrid"></div>
+</section>
+
+<!-- ================= MATCHING ================= -->
+<section class="section" id="matching">
+  <div class="section-head">
+    <span class="eyebrow">Relational Intelligence</span>
+    <h2>Ashtakoota Matching, Computed Properly</h2>
+    <p>All eight kootas scored from both Moon nakshatras, with Manglik analysis
+       from real Mars placement.</p>
+  </div>
+
+  <div class="match-shell">
+    <form class="match-form" id="matchForm">
+      <fieldset>
+        <legend>Partner A</legend>
+        <input type="text" id="aName" placeholder="Name" value="Arjun" aria-label="Partner A name" />
+        <input type="date" id="aDate" value="1993-04-12" required aria-label="Partner A date of birth" />
+        <input type="time" id="aTime" value="07:45" required aria-label="Partner A time of birth" />
+        <div class="field-place">
+          <input type="text" id="aPlace" placeholder="Birth place" value="New Delhi, India" role="combobox" aria-expanded="false" aria-controls="aPlaceList" />
+          <ul class="place-list" id="aPlaceList" role="listbox" hidden></ul>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Partner B</legend>
+        <input type="text" id="pName" placeholder="Name" value="Riya" aria-label="Partner B name" />
+        <input type="date" id="pDate" value="1995-11-23" required aria-label="Partner B date of birth" />
+        <input type="time" id="pTime" value="16:20" required aria-label="Partner B time of birth" />
+        <div class="field-place">
+          <input type="text" id="pPlace" placeholder="Birth place" value="Mumbai, India" role="combobox" aria-expanded="false" aria-controls="pPlaceList" />
+          <ul class="place-list" id="pPlaceList" role="listbox" hidden></ul>
+        </div>
+      </fieldset>
+      <button class="btn btn-primary btn-lg" type="submit">Compute Guna Milan</button>
+    </form>
+
+    <div class="match-result panel" id="matchResult" hidden>
+      <div class="match-score">
+        <svg id="matchDial" class="dial" role="img" aria-label="Compatibility score"></svg>
+        <div>
+          <strong id="matchVerdict">—</strong>
+          <span id="matchNames">—</span>
+        </div>
+      </div>
+      <div class="koota-grid" id="kootaGrid"></div>
+      <div class="manglik-row" id="manglikRow"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= ORACLE ================= -->
+<section class="section" id="oracle">
+  <div class="section-head">
+    <span class="eyebrow">Vedic Reasoning Engine</span>
+    <h2>Ask Your Chart a Question</h2>
+    <p>Answers are derived from your actual placements using Parashari rules.
+       Add a Gemini key for narrative synthesis on top — the maths stays local.</p>
+  </div>
+
+  <div class="oracle-shell panel">
+    <div class="oracle-log" id="oracleLog" aria-live="polite"></div>
+    <div class="oracle-chips" id="oracleChips"></div>
+    <form class="oracle-form" id="oracleForm">
+      <input type="text" id="oracleInput" placeholder="e.g. When is a good period for marriage?" aria-label="Ask a question" />
+      <button class="btn btn-primary" type="submit">Ask</button>
+    </form>
+    <details class="oracle-ai">
+      <summary>Optional: connect Gemini for narrative answers</summary>
+      <p>Your key is stored only in this browser's local storage and is sent
+         directly to Google — never to us. The chart maths always runs locally.</p>
+      <div class="oracle-key">
+        <input type="password" id="aiKey" placeholder="Gemini API key" autocomplete="off" />
+        <button class="btn btn-outline btn-sm" id="saveKey" type="button">Save</button>
+        <button class="btn btn-ghost btn-sm" id="clearKey" type="button">Clear</button>
+      </div>
+      <span class="key-status" id="keyStatus">No key stored — using the offline reasoning engine.</span>
+    </details>
+  </div>
+</section>
+
+<!-- ================= REMEDIES ================= -->
+<section class="section" id="remedies">
+  <div class="section-head">
+    <span class="eyebrow">Authentic Remedies</span>
+    <h2>Targeted at Your Weakest Grahas</h2>
+    <p>Chosen by computed strength, not by upsell — with gemstones limited to
+       functional benefics for your lagna.</p>
+  </div>
+  <div class="remedy-grid" id="remedyGrid">
+    <p class="muted">Calculate your chart to see personalised remedies.</p>
+  </div>
+  <div class="panel" id="gemPanel" hidden>
+    <div class="panel-head"><h3>Gemstone Guidance</h3></div>
+    <div class="gem-grid" id="gemGrid"></div>
+  </div>
+</section>
+
+<!-- ================= REFERRAL & STREAK ================= -->
+<section class="section" id="rewards">
+  <div class="section-head">
+    <span class="eyebrow">Grow the Circle</span>
+    <h2>Share Your Chart, Unlock More</h2>
+    <p>Invite fellow seekers, keep a daily streak, and unlock deeper features —
+       all tracked privately in your own browser.</p>
+  </div>
+
+  <div class="rewards-grid">
+    <article class="panel referral-card">
+      <div class="panel-head"><h3>Your Referral Code</h3></div>
+      <div class="referral-code" id="referralCode">ADI-SEEKER-0000</div>
+      <p class="panel-note">When a friend opens this link and calculates their
+         first chart, you both unlock Pro report export.</p>
+      <div class="referral-actions">
+        <button class="btn btn-primary" id="copyRefBtn" type="button">Copy invite link</button>
+        <button class="btn btn-outline" id="shareChartBtn" type="button">Share chart card</button>
+      </div>
+      <div class="referral-meta" id="referralMeta"></div>
+    </article>
+
+    <article class="panel streak-card">
+      <div class="panel-head"><h3>Daily Streak</h3></div>
+      <div class="streak-head">
+        <span class="streak-flame" aria-hidden="true">🔥</span>
+        <div>
+          <strong id="streakCount">0 days</strong>
+          <span id="streakBest">Best: 0</span>
+        </div>
+      </div>
+      <ul class="streak-list" id="streakList"></ul>
+    </article>
+
+    <article class="panel offer-card" id="offerCard">
+      <span class="offer-badge">This week only</span>
+      <h3 id="offerTitle">—</h3>
+      <p class="offer-discount" id="offerDiscount">—</p>
+      <p class="panel-note" id="offerNote"></p>
+      <div class="offer-timer">
+        <span>Ends in</span>
+        <strong id="offerCountdown">—</strong>
+      </div>
+      <a class="btn btn-primary" href="#pricing">View the offer</a>
+    </article>
+  </div>
+</section>
+
+<!-- ================= TESTIMONIALS ================= -->
+<section class="section" id="testimonials">
+  <div class="section-head">
+    <span class="eyebrow">User Experience</span>
+    <h2>Trusted by Mindful Seekers</h2>
+  </div>
+  <div class="testimonial-grid" id="testimonialGrid"></div>
+</section>
+
+<!-- ================= PRICING ================= -->
+<section class="section" id="pricing">
+  <div class="section-head">
+    <span class="eyebrow">Transparent Membership</span>
+    <h2>Choose Your Level of Insight</h2>
+    <p>The complete birth chart, dasha, panchang, matching and planetarium are
+       free forever. Paid tiers add export depth and human guidance.</p>
+  </div>
+
+  <div class="billing-toggle" role="group" aria-label="Billing period">
+    <button type="button" data-period="monthly" class="is-active">Monthly</button>
+    <button type="button" data-period="annual">Annual <em>save 40%</em></button>
+  </div>
+
+  <div class="pricing-grid" id="pricingGrid"></div>
+</section>
+
+<!-- ================= FAQ ================= -->
+<section class="section" id="faq">
+  <div class="section-head">
+    <span class="eyebrow">Straight Answers</span>
+    <h2>Frequently Asked Questions</h2>
+  </div>
+  <div class="faq-list" id="faqList"></div>
+</section>
+
+<!-- ================= APP / CTA ================= -->
+<section class="section section-cta" id="app">
+  <div class="cta-card">
+    <div>
+      <span class="eyebrow">Begin Your Guidance</span>
+      <h2>The same engine, in your pocket</h2>
+      <p>Adi Jyotish Gurus ships as a native Android app built with Jetpack
+         Compose, sharing this project's astrology model and design language.</p>
+      <div class="cta-actions">
+        <a class="btn btn-primary btn-lg" href="https://github.com/aman02899999/Jyotish-guru" rel="noopener">View the source</a>
+        <a class="btn btn-outline btn-lg" href="#kundli">Calculate a chart</a>
+      </div>
+      <ul class="cta-points">
+        <li>Runs entirely client-side — your birth data never leaves the device</li>
+        <li>Works offline once loaded</li>
+        <li>Open source, MIT-licensed engine</li>
+      </ul>
+    </div>
+    <div class="cta-visual">
+      <svg id="ctaWheel" class="wheel" role="img" aria-label="Zodiac wheel"></svg>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer class="site-footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <svg viewBox="0 0 48 48" width="30" height="30"><use href="assets/img/sprite.svg#logo"></use></svg>
+      <div>
+        <strong>Adi Jyotish Gurus</strong>
+        <p>Ancient wisdom, computed honestly.</p>
+      </div>
+    </div>
+    <nav aria-label="Footer">
+      <a href="#planetarium">Planetarium</a>
+      <a href="#kundli">Kundli</a>
+      <a href="#dasha">Dasha</a>
+      <a href="#panchang">Panchang</a>
+      <a href="#matching">Matching</a>
+      <a href="#muhurat">Muhurat</a>
+      <a href="#numerology">Numerology</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/aman02899999/Jyotish-guru" rel="noopener">GitHub</a>
+    </nav>
+  </div>
+  <div class="footer-bottom">
+    <p>Positions from the Astronomy Engine (VSOP87/Meeus), sidereal via Lahiri,
+       Raman or KP ayanamsa. For guidance and reflection — not a substitute for
+       professional advice.</p>
+    <p class="copyright">© <span id="year">2026</span> Adi Jyotish Gurus</p>
+  </div>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="assets/js/app.js"></script>
+</body>
+</html>

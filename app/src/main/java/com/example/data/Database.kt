@@ -17,7 +17,13 @@ data class UserProfile(
     val subscriptionExpiry: Long = 0L,
     val walletBalance: Int = 0, // Wallet money in ₹
     val referralClaimed: Boolean = false,
-    val preferredLanguage: String = "Hinglish"
+    val preferredLanguage: String = "Hinglish",
+
+    // --- Daily engagement streak (mirrors the web app's reward ladder) ---
+    val streakCount: Int = 0,
+    val streakBest: Int = 0,
+    val streakLastDay: String = "", // yyyy-MM-dd of the last counted visit
+    val unlockedRewards: String = "" // comma-separated reward ids
 )
 
 @Entity(tableName = "report_sessions")
@@ -100,7 +106,7 @@ interface AstrologyDao {
 
 // --- Database Class ---
 
-@Database(entities = [UserProfile::class, ReportSession::class], version = 5, exportSchema = false)
+@Database(entities = [UserProfile::class, ReportSession::class], version = 6, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun astrologyDao(): AstrologyDao
 

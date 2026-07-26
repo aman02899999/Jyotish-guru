@@ -16,3 +16,8 @@
 local.properties
 .env
 debug.keystore
+
+# Node / web tooling
+node_modules/
+npm-debug.log*
+package-lock.json

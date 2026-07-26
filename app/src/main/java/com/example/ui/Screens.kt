@@ -13,6 +13,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -31,6 +33,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -59,6 +62,7 @@ import android.graphics.Shader
 import android.net.Uri
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.core.content.FileProvider
 import java.io.File
 import java.io.FileOutputStream
@@ -670,7 +674,12 @@ fun CelestialBadge(
     }
 }
 
-// --- SCREEN 1: Onboarding with Firebase OTP & Disclaimer ---
+// --- SCREEN 1: Onboarding — hero landing mirroring the web experience ---
+//
+// Replaces the previous plain form-first landing. The layout now follows the
+// same narrative as the web landing page: eyebrow → headline → lede → live
+// proof stats → feature strip → sign-in card, all on the cosmic background.
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnboardingScreen(viewModel: AstrologyViewModel) {
@@ -683,78 +692,221 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
     val isVerifying by viewModel.isVerifyingOtp.collectAsState()
     val otpSent by viewModel.otpSent.collectAsState()
 
+    // Slow celestial rotation behind the logo mark.
+    val infinite = rememberInfiniteTransition(label = "halo")
+    val haloAngle by infinite.animateFloat(
+        initialValue = 0f,
+        targetValue = 360f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(38000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "haloAngle"
+    )
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(horizontal = 24.dp, vertical = 32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // App Title & Celestial Icon Logo
+        // ---------- Brand mark ----------
         Box(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(
-                    Brush.linearGradient(
-                        colors = listOf(SoftPlum, DarkSpacePurple, DeepMidnight)
-                    )
-                )
-                .border(2.dp, CelestialGold, CircleShape)
-                .padding(12.dp),
+            modifier = Modifier.size(124.dp),
             contentAlignment = Alignment.Center
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = "Adi Jyotish Gurus Logo",
-                modifier = Modifier.fillMaxSize()
-            )
+            // Rotating orbital ring
+            Canvas(modifier = Modifier.fillMaxSize()) {
+                rotate(haloAngle) {
+                    drawCircle(
+                        color = CelestialGold.copy(alpha = 0.30f),
+                        radius = size.minDimension / 2f - 2.dp.toPx(),
+                        style = Stroke(width = 1.dp.toPx())
+                    )
+                    // Four cardinal orbital nodes
+                    val r = size.minDimension / 2f - 2.dp.toPx()
+                    listOf(0f, 90f, 180f, 270f).forEach { deg ->
+                        val rad = Math.toRadians(deg.toDouble())
+                        drawCircle(
+                            color = CelestialGold.copy(alpha = 0.55f),
+                            radius = 2.5.dp.toPx(),
+                            center = Offset(
+                                center.x + (r * kotlin.math.cos(rad)).toFloat(),
+                                center.y + (r * kotlin.math.sin(rad)).toFloat()
+                            )
+                        )
+                    }
+                }
+            }
+            Box(
+                modifier = Modifier
+                    .size(92.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.linearGradient(listOf(SoftPlum, DarkSpacePurple, DeepMidnight))
+                    )
+                    .border(1.5.dp, CelestialGold, CircleShape)
+                    .padding(14.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                    contentDescription = "Adi Jyotish Gurus logo",
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
         }
-        Spacer(modifier = Modifier.height(16.dp))
+
+        Spacer(modifier = Modifier.height(22.dp))
+
+        // ---------- Eyebrow ----------
         Text(
-            text = "Adi Jyotish Gurus",
-            fontSize = 32.sp,
-            fontWeight = FontWeight.ExtraBold,
+            text = "◆  VEDIC ASTRONOMY ENGINE v4.0",
+            fontSize = 10.sp,
+            letterSpacing = 2.2.sp,
+            fontWeight = FontWeight.SemiBold,
             color = CelestialGold,
-            letterSpacing = 1.sp,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(14.dp))
+
+        // ---------- Headline ----------
+        Text(
+            text = "Ancient Wisdom.",
+            fontSize = 34.sp,
+            lineHeight = 38.sp,
+            fontWeight = FontWeight.Bold,
+            color = GalacticWhite,
             textAlign = TextAlign.Center
         )
         Text(
-            text = "Find world best astrologers",
-            style = MaterialTheme.typography.bodyMedium,
-            color = SpaceLavender,
+            text = "Modern Intelligence.",
+            fontSize = 34.sp,
+            lineHeight = 40.sp,
+            fontWeight = FontWeight.Bold,
             fontStyle = FontStyle.Italic,
+            color = CelestialGold,
             textAlign = TextAlign.Center
         )
 
-        Spacer(modifier = Modifier.height(36.dp))
+        Spacer(modifier = Modifier.height(14.dp))
 
+        Text(
+            text = "Authentic Vedic astrology built on high-precision ephemeris " +
+                "calculations, deep AI synthesis and guidance from certified astrologers.",
+            fontSize = 13.sp,
+            lineHeight = 20.sp,
+            color = SpaceLavender,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 8.dp)
+        )
+
+        Spacer(modifier = Modifier.height(26.dp))
+
+        // ---------- Proof stats ----------
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            listOf(
+                "9" to "Grahas",
+                "27" to "Nakshatras",
+                "16" to "Vargas",
+                "120" to "Yr Dasha"
+            ).forEach { (value, label) ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = value,
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = CelestialGold
+                    )
+                    Text(
+                        text = label,
+                        fontSize = 9.sp,
+                        letterSpacing = 0.6.sp,
+                        color = SpaceLavender.copy(alpha = 0.8f)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // ---------- Feature strip ----------
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(14.dp))
+                .background(SoftPlum.copy(alpha = 0.55f))
+                .border(
+                    1.dp,
+                    CelestialGold.copy(alpha = 0.18f),
+                    RoundedCornerShape(14.dp)
+                )
+                .padding(vertical = 14.dp, horizontal = 8.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            listOf(
+                "✦" to "Kundli",
+                "◷" to "Dasha",
+                "❋" to "Panchang",
+                "♥" to "Matching"
+            ).forEach { (glyph, label) ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(text = glyph, fontSize = 17.sp, color = CelestialGold)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = label,
+                        fontSize = 10.sp,
+                        color = GalacticWhite.copy(alpha = 0.85f)
+                    )
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(28.dp))
+
+        // ---------- Sign-in card ----------
         Card(
-            colors = CardDefaults.cardColors(containerColor = SoftPlum.copy(alpha = 0.85f)),
-            border = BorderStroke(1.dp, CelestialGold.copy(alpha = 0.3f)),
-            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = SoftPlum.copy(alpha = 0.9f)),
+            border = BorderStroke(1.dp, CelestialGold.copy(alpha = 0.32f)),
+            shape = RoundedCornerShape(20.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(22.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (!otpSent) "Vedic Onboarding" else "Enter Security OTP",
+                    text = if (!otpSent) "Begin Your Reading" else "Enter Security OTP",
                     style = MaterialTheme.typography.titleLarge,
                     color = GalacticWhite,
                     fontWeight = FontWeight.Bold
                 )
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(6.dp))
+                Text(
+                    text = if (!otpSent)
+                        "Free to start · No card required"
+                    else
+                        "A one-time code keeps your chart private",
+                    fontSize = 11.sp,
+                    color = SpaceLavender,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(20.dp))
 
                 if (!otpSent) {
-                    // Step 1: Input Name and Phone
+                    // Step 1: Name and phone
                     OutlinedTextField(
                         value = name,
                         onValueChange = { name = it },
                         label = { Text("Your Full Name", color = SpaceLavender) },
-                        leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = CelestialGold) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Person, contentDescription = null, tint = CelestialGold)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .testTag("onboarding_name_input"),
@@ -766,6 +918,7 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                             focusedTextColor = GalacticWhite,
                             unfocusedTextColor = GalacticWhite
                         ),
+                        shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )
 
@@ -775,7 +928,9 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                         value = phone,
                         onValueChange = { phone = it },
                         label = { Text("Phone Number", color = SpaceLavender) },
-                        leadingIcon = { Icon(Icons.Default.Phone, contentDescription = null, tint = CelestialGold) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Phone, contentDescription = null, tint = CelestialGold)
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -788,10 +943,11 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                             focusedTextColor = GalacticWhite,
                             unfocusedTextColor = GalacticWhite
                         ),
+                        shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(18.dp))
 
                     Text(
                         text = "Preferred Language / भाषा चुनें",
@@ -817,11 +973,19 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(horizontal = 4.dp)
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(if (isSelected) CelestialGold else SoftPlum.copy(alpha = 0.5f))
-                                    .border(1.dp, if (isSelected) CelestialGold else SpaceLavender.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(
+                                        if (isSelected) CelestialGold
+                                        else SoftPlum.copy(alpha = 0.5f)
+                                    )
+                                    .border(
+                                        1.dp,
+                                        if (isSelected) CelestialGold
+                                        else SpaceLavender.copy(alpha = 0.3f),
+                                        RoundedCornerShape(10.dp)
+                                    )
                                     .clickable { selectedLanguage = lang }
-                                    .padding(vertical = 8.dp),
+                                    .padding(vertical = 9.dp),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
@@ -836,7 +1000,7 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
 
                     Spacer(modifier = Modifier.height(20.dp))
 
-                    // Consent disclaimer screen
+                    // Consent disclaimer
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -854,7 +1018,9 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "I consent to receiving AI-generated astrological interpretations and reports. I understand these insights are for guidance and entertainment purposes only.",
+                            text = "I consent to receiving AI-generated astrological " +
+                                "interpretations and reports. I understand these insights " +
+                                "are for guidance and entertainment purposes only.",
                             fontSize = 11.sp,
                             color = SpaceLavender,
                             lineHeight = 16.sp
@@ -868,24 +1034,33 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                         enabled = name.isNotBlank() && phone.isNotBlank() && consented && !isVerifying,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp)
+                            .height(52.dp)
                             .testTag("send_otp_button"),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = CelestialGold,
                             disabledContainerColor = Color.Gray.copy(alpha = 0.3f)
                         ),
-                        shape = RoundedCornerShape(25.dp)
+                        shape = RoundedCornerShape(26.dp)
                     ) {
                         if (isVerifying) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = DeepMidnight)
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = DeepMidnight
+                            )
                         } else {
-                            Text("SEND SECURITY OTP", color = DeepMidnight, fontWeight = FontWeight.Bold)
+                            Text(
+                                "START FREE READING",
+                                color = DeepMidnight,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.8.sp
+                            )
                         }
                     }
                 } else {
-                    // Step 2: Input Simulated OTP
+                    // Step 2: OTP verification
                     Text(
-                        text = "We've simulated sending a security OTP to $phone. Use verification code '123456' to authorize.",
+                        text = "We've simulated sending a security OTP to $phone. " +
+                            "Use verification code '123456' to authorize.",
                         color = SpaceLavender,
                         fontSize = 12.sp,
                         textAlign = TextAlign.Center,
@@ -897,7 +1072,9 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                         value = otpCode,
                         onValueChange = { otpCode = it },
                         label = { Text("Enter 6-Digit OTP", color = SpaceLavender) },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = null, tint = CelestialGold) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Lock, contentDescription = null, tint = CelestialGold)
+                        },
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -910,25 +1087,38 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                             focusedTextColor = GalacticWhite,
                             unfocusedTextColor = GalacticWhite
                         ),
+                        shape = RoundedCornerShape(12.dp),
                         singleLine = true
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { viewModel.verifyOtpAndLogin(name, phone, otpCode, consented, selectedLanguage) },
+                        onClick = {
+                            viewModel.verifyOtpAndLogin(
+                                name, phone, otpCode, consented, selectedLanguage
+                            )
+                        },
                         enabled = otpCode.length >= 4 && !isVerifying,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(50.dp)
+                            .height(52.dp)
                             .testTag("verify_otp_button"),
                         colors = ButtonDefaults.buttonColors(containerColor = CelestialGold),
-                        shape = RoundedCornerShape(25.dp)
+                        shape = RoundedCornerShape(26.dp)
                     ) {
                         if (isVerifying) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = DeepMidnight)
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = DeepMidnight
+                            )
                         } else {
-                            Text("VERIFY & LOG IN", color = DeepMidnight, fontWeight = FontWeight.Bold)
+                            Text(
+                                "VERIFY & LOG IN",
+                                color = DeepMidnight,
+                                fontWeight = FontWeight.Bold,
+                                letterSpacing = 0.8.sp
+                            )
                         }
                     }
 
@@ -940,6 +1130,21 @@ fun OnboardingScreen(viewModel: AstrologyViewModel) {
                 }
             }
         }
+
+        Spacer(modifier = Modifier.height(22.dp))
+
+        // ---------- Trust footer ----------
+        Text(
+            text = "Positions computed from a high-precision ephemeris · " +
+                "Lahiri ayanamsa · Your data stays on your device",
+            fontSize = 10.sp,
+            lineHeight = 15.sp,
+            color = SpaceLavender.copy(alpha = 0.6f),
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(horizontal = 16.dp)
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
     }
 }
 
@@ -2687,6 +2892,11 @@ fun ProfileScreen(viewModel: AstrologyViewModel) {
                 ReferralSimulationSection(viewModel = viewModel)
             }
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // --- DAILY STREAK REWARDS ---
+        DailyStreakCard(viewModel = viewModel)
 
         Spacer(modifier = Modifier.height(24.dp))
 
@@ -5114,4 +5324,106 @@ fun InAppMarketingComponent(viewModel: AstrologyViewModel) {
     }
 }
 
+// --- Daily Streak Rewards Card ---
+//
+// Mirrors the streak ladder on the web landing page: visiting on consecutive
+// days unlocks progressively deeper features.
+@Composable
+fun DailyStreakCard(viewModel: AstrologyViewModel) {
+    val profile by viewModel.userProfile.collectAsState()
+    val streakToast by viewModel.streakToast.collectAsState()
+    val context = LocalContext.current
 
+    // Register today's visit once, when the card first enters composition.
+    LaunchedEffect(profile?.id) {
+        if (profile != null) viewModel.touchDailyStreak()
+    }
+
+    LaunchedEffect(streakToast) {
+        streakToast?.let {
+            Toast.makeText(context, it, Toast.LENGTH_LONG).show()
+            viewModel.clearStreakToast()
+        }
+    }
+
+    val count = profile?.streakCount ?: 0
+    val best = profile?.streakBest ?: 0
+
+    Text(
+        text = "DAILY STREAK REWARDS",
+        fontSize = 12.sp,
+        fontWeight = FontWeight.Bold,
+        letterSpacing = 1.5.sp,
+        color = CelestialGold
+    )
+    Spacer(modifier = Modifier.height(10.dp))
+
+    Card(
+        colors = CardDefaults.cardColors(containerColor = SoftPlum.copy(alpha = 0.85f)),
+        border = BorderStroke(1.dp, CelestialGold.copy(alpha = 0.3f)),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(text = "\uD83D\uDD25", fontSize = 34.sp)
+                Spacer(modifier = Modifier.width(14.dp))
+                Column {
+                    Text(
+                        text = if (count == 1) "1 day" else "$count days",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = CelestialGold
+                    )
+                    Text(
+                        text = "Best streak: $best",
+                        fontSize = 11.sp,
+                        color = SpaceLavender
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider(color = CelestialGold.copy(alpha = 0.15f))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            AstrologyViewModel.STREAK_REWARDS.forEach { reward ->
+                val done = count >= reward.days
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 5.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (done) Icons.Default.CheckCircle else Icons.Outlined.Circle,
+                        contentDescription = null,
+                        tint = if (done) Color(0xFF6FD08C) else SpaceLavender.copy(alpha = 0.4f),
+                        modifier = Modifier.size(17.dp)
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = reward.label,
+                        fontSize = 12.sp,
+                        color = if (done) GalacticWhite else SpaceLavender.copy(alpha = 0.75f),
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = "${reward.days}d",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (done) CelestialGold else SpaceLavender.copy(alpha = 0.5f)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+            Text(
+                text = "Your referral code: ${viewModel.referralCodeFor(profile)}",
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace,
+                color = CelestialGold.copy(alpha = 0.85f)
+            )
+        }
+    }
+}
