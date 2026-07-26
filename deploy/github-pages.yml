@@ -34,6 +34,10 @@ jobs:
         run: node web/tests/dom.test.mjs
       - name: Admin panel tests
         run: node web/tests/admin.test.mjs
+      - name: User account tests
+        run: node web/tests/auth.test.mjs
+      - name: Theme & contrast tests
+        run: node web/tests/theme.test.mjs
       - name: End-to-end publish test
         run: node web/tests/publish.test.mjs
       - name: Android source consistency

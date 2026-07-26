@@ -14,6 +14,9 @@ import * as M from './promo.js';
 import * as Store from './admin/content.js';
 import * as An from './admin/analytics.js';
 import { Planetarium, webglAvailable } from './planetarium.js';
+import { mountAccountUI } from './auth/ui.js';
+import * as Auth from './auth/auth.js';
+import * as Profile from './auth/profile.js';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -66,7 +69,21 @@ async function boot() {
   initPricing();
   initFaq();
   initNotifications();
+  initAccounts();
   restoreFromURL();
+}
+
+/**
+ * Accounts are strictly additive: the astrology engine never waits on them and
+ * never fails because of them, so a blocked CDN or missing Firebase config
+ * costs the visitor nothing.
+ */
+function initAccounts() {
+  try {
+    mountAccountUI({ toast });
+  } catch (err) {
+    console.error('Account UI failed to mount', err);
+  }
 }
 
 /* ================================================================
@@ -100,9 +117,18 @@ function applyContent() {
   }
 
   // --- theme ---
+  // The content.json keys are historical (gold/plum/void/panel); the CSS
+  // variables they drive are the semantic ones, so an admin editing "gold"
+  // is really setting the primary accent whatever hue it happens to be.
   if (c.theme) {
     const root = document.documentElement;
-    const map = { gold: '--gold', plum: '--plum', void: '--void', panel: '--panel', text: '--text' };
+    const map = {
+      gold: '--accent',
+      plum: '--accent-2',
+      void: '--bg',
+      panel: '--surface',
+      text: '--text',
+    };
     for (const [k, v] of Object.entries(map)) {
       if (c.theme[k]) root.style.setProperty(v, c.theme[k]);
     }
@@ -152,17 +178,38 @@ function setText(sel, value) {
 
 /* ---------------- theme ---------------- */
 
+/**
+ * The off-white/maroon palette is light-first, so an explicit `light` default
+ * is correct here: only an OS-level dark preference (or a saved choice) opts
+ * into the dark variant.
+ */
 function initTheme() {
   const saved = localStorage.getItem('ajg-theme');
-  if (saved) document.documentElement.dataset.theme = saved;
-  else if (matchMedia('(prefers-color-scheme: light)').matches) document.documentElement.dataset.theme = 'light';
-  else document.documentElement.dataset.theme = 'dark';
+  if (saved === 'light' || saved === 'dark') {
+    document.documentElement.dataset.theme = saved;
+  } else if (matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.documentElement.dataset.theme = 'dark';
+  } else {
+    document.documentElement.dataset.theme = 'light';
+  }
+  syncBrowserChrome();
 
   $('#themeToggle').addEventListener('click', () => {
     const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
     document.documentElement.dataset.theme = next;
     localStorage.setItem('ajg-theme', next);
+    syncBrowserChrome();
   });
+}
+
+/**
+ * Keep the mobile browser chrome (address bar) matching the theme, so the
+ * off-white page doesn't sit under a dark status bar.
+ */
+function syncBrowserChrome() {
+  const dark = document.documentElement.dataset.theme === 'dark';
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', dark ? '#17100f' : '#f4efe6');
 }
 
 /* ---------------- nav ---------------- */
@@ -217,17 +264,26 @@ function initStarfield() {
       x: Math.random() * w, y: Math.random() * h,
       r: Math.random() * 1.5 * devicePixelRatio + 0.35,
       a: Math.random(), s: Math.random() * 0.014 + 0.003,
-      hue: Math.random() < 0.75 ? 210 : 42,
+      // Maroon or brass, matching the theme rather than the old blue/gold.
+      hue: Math.random() < 0.72 ? 353 : 42,
     }));
   }
   function draw() {
     ctx.clearRect(0, 0, w, h);
+    // On off-white the specks must be darker than the page to be visible at
+    // all; in the dark variant they light up. Read live so the toggle applies
+    // without a reload.
+    const dark = document.documentElement.dataset.theme === 'dark';
+    const light = dark ? 82 : 38;
+    const sat = dark ? 60 : 45;
+    const peak = dark ? 0.62 : 0.3;
+    const base = dark ? 0.28 : 0.1;
     for (const st of stars) {
       st.a += st.s;
-      const alpha = 0.28 + Math.abs(Math.sin(st.a)) * 0.62;
+      const alpha = base + Math.abs(Math.sin(st.a)) * peak;
       ctx.beginPath();
       ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
-      ctx.fillStyle = `hsla(${st.hue}, 60%, 82%, ${alpha})`;
+      ctx.fillStyle = `hsla(${st.hue}, ${sat}%, ${light}%, ${alpha})`;
       ctx.fill();
     }
     raf = requestAnimationFrame(draw);
@@ -775,15 +831,15 @@ function drawMoonPhase(pan) {
   const waxing = pan.moonPhase < 180;
   svg.innerHTML = `
     <defs><clipPath id="mclip"><circle cx="50" cy="50" r="44"/></clipPath></defs>
-    <circle cx="50" cy="50" r="44" fill="#1a1428" stroke="rgba(212,175,55,.4)" stroke-width="1.5"/>
+    <circle cx="50" cy="50" r="44" fill="#3a2320" stroke="rgba(122,30,40,.45)" stroke-width="1.5"/>
     <g clip-path="url(#mclip)">
       <ellipse cx="${waxing ? 50 + (1 - illum * 2) * 44 : 50 - (1 - illum * 2) * 44}" cy="50"
                rx="${Math.abs(1 - illum * 2) * 44}" ry="44"
-               fill="${illum > 0.5 ? '#e8dcc0' : '#1a1428'}"/>
-      <path d="M50,6 A44,44 0 0,${waxing ? 1 : 0} 50,94 Z" fill="#e8dcc0"/>
+               fill="${illum > 0.5 ? '#f5e9d8' : '#3a2320'}"/>
+      <path d="M50,6 A44,44 0 0,${waxing ? 1 : 0} 50,94 Z" fill="#f5e9d8"/>
       <ellipse cx="${waxing ? 50 - (1 - illum * 2) * 44 : 50 + (1 - illum * 2) * 44}" cy="50"
                rx="${Math.abs(1 - illum * 2) * 44}" ry="44"
-               fill="${illum > 0.5 ? '#e8dcc0' : '#1a1428'}"/>
+               fill="${illum > 0.5 ? '#f5e9d8' : '#3a2320'}"/>
     </g>`;
   $('#moonPhaseName').textContent = phaseName(pan.moonPhase);
   $('#moonIllum').textContent = `${pan.illumination.toFixed(1)}% illuminated · ${pan.tithi.paksha} paksha`;
@@ -1646,7 +1702,7 @@ function initFaq() {
 function saveCurrentChart() {
   if (!state.chart) return;
   const c = state.chart, f = state.birthLocal;
-  An.saveChart({
+  const record = {
     label: f.name || '',
     date: f.date,
     time: f.time,
@@ -1654,9 +1710,19 @@ function saveCurrentChart() {
     lagna: `${E.SIGNS[c.ascendantSign].en} ${E.formatDMS(c.ascendant % 30)}`,
     moon: `${c.planets.Moon.signName} · ${c.planets.Moon.nakshatra.name}`,
     ayanamsa: c.ayanamsaKey,
-  });
+  };
+
+  // Keep the existing admin-panel view working, and additionally file the
+  // chart under the signed-in account (or the anonymous bucket, which is
+  // adopted on first sign-in).
+  An.saveChart(record);
+  const u = Auth.user();
+  Profile.saveChart(u && u.uid, record);
+
   An.trackAction('save-chart');
-  toast('Chart saved to this browser. Manage it in the admin panel.');
+  toast(u
+    ? `Chart saved to your account, ${u.name.split(' ')[0]}.`
+    : 'Chart saved to this browser. Sign in to keep it with your account.');
 }
 
 /* ================================================================

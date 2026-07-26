@@ -61,12 +61,15 @@ export const DEFAULTS = {
     { id: 'faq', nav: 'FAQ', visible: true, inNav: false },
   ],
 
+  /* Off-white paper + maroon. Keys are the historical names kept for
+     backwards compatibility with any published content.json; the values and
+     the CSS variables they drive are the current palette. */
   theme: {
-    gold: '#d4af37',
-    plum: '#7b5ea7',
-    void: '#07050f',
-    panel: '#120d21',
-    text: '#f0ebff',
+    gold: '#7a1e28',   // primary accent (maroon)
+    plum: '#8a6d2c',   // secondary accent (brass)
+    void: '#f4efe6',   // page background (off-white)
+    panel: '#fbf7f0',  // card surfaces
+    text: '#2b1d1a',   // body text
   },
 
   features: [
@@ -212,24 +215,98 @@ export const DEFAULTS = {
 let published = null;   // parsed content.json
 let draft = null;       // localStorage overlay
 let resolved = null;    // merged view
+let lastIssues = [];    // problems found in the last load, for the admin dashboard
 const listeners = new Set();
 
 const clone = (v) => (typeof structuredClone === 'function'
   ? structuredClone(v)
   : JSON.parse(JSON.stringify(v)));
 
+/** Only a plain object can be overlaid onto DEFAULTS. */
+const isPlainObject = (v) =>
+  !!v && typeof v === 'object' && !Array.isArray(v);
+
+/**
+ * Discard any top-level key whose shape does not match DEFAULTS.
+ *
+ * A corrupted draft or a hand-edited content.json used to be merged verbatim,
+ * so a single wrong type (`features: "none"`) propagated straight into the
+ * renderers and blanked the page. Filtering here means the worst a bad payload
+ * can do is fall back to the shipped default for that one key.
+ *
+ * Returns the safe subset plus a list of human-readable problems.
+ */
+export function sanitize(obj, { source = 'content' } = {}) {
+  const issues = [];
+  if (obj === null || obj === undefined) return { value: {}, issues };
+  if (!isPlainObject(obj)) {
+    return { value: {}, issues: [`${source} must be an object — ignored`] };
+  }
+
+  const out = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value === undefined || value === null) continue;
+
+    const expected = DEFAULTS[key];
+    if (expected !== undefined) {
+      if (Array.isArray(expected) !== Array.isArray(value) || typeof expected !== typeof value) {
+        issues.push(`${source}.${key} has the wrong type — using the default`);
+        continue;
+      }
+      // Collections must hold objects; a stray primitive would crash a renderer.
+      if (Array.isArray(expected)) {
+        const rows = value.filter(isPlainObject);
+        if (rows.length !== value.length) {
+          issues.push(`${source}.${key}: dropped ${value.length - rows.length} malformed row(s)`);
+        }
+        out[key] = rows;
+        continue;
+      }
+    }
+    out[key] = value;
+  }
+  return { value: out, issues };
+}
+
+/** Problems detected the last time content or a draft was loaded. */
+export function issues() {
+  return [...lastIssues];
+}
+
 function readDraft() {
   try {
     const raw = localStorage.getItem(DRAFT_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    const { value, issues: found } = sanitize(parsed, { source: 'draft' });
+    if (found.length) {
+      lastIssues = [...lastIssues.filter((i) => !i.startsWith('draft')), ...found];
+      // Rewrite the cleaned draft so the corruption is repaired, not re-read
+      // on every single call.
+      writeDraft(Object.keys(value).length ? value : null);
+    }
+    return Object.keys(value).length ? value : null;
+  } catch {
+    // Unparseable JSON: clear it rather than failing on every read forever.
+    try { localStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
+    lastIssues = [...lastIssues, 'draft was unreadable and has been discarded'];
+    return null;
+  }
 }
 
+/**
+ * Persist the draft. Returns false when the browser refused the write
+ * (quota exceeded, private mode, storage disabled) so callers can tell the
+ * operator their edit did not survive instead of silently losing it.
+ */
 function writeDraft(d) {
   try {
     if (d === null) localStorage.removeItem(DRAFT_KEY);
     else localStorage.setItem(DRAFT_KEY, JSON.stringify(d));
-  } catch { /* quota */ }
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 /** Shallow merge per top-level key — a partial draft never loses other keys. */
@@ -248,12 +325,22 @@ function merge(base, over) {
  */
 export async function loadContent({ withDraft = true } = {}) {
   if (published === null) {
+    lastIssues = [];
+    let raw = {};
     try {
       const res = await fetch(CONTENT_URL, { cache: 'no-cache' });
-      published = res.ok ? await res.json() : {};
+      if (res.ok) {
+        raw = await res.json();
+      } else if (res.status !== 404) {
+        // 404 just means nothing has been published yet — not worth reporting.
+        lastIssues.push(`content.json returned ${res.status} — using defaults`);
+      }
     } catch {
-      published = {};
+      raw = {};
     }
+    const { value, issues: found } = sanitize(raw, { source: 'content.json' });
+    published = value;
+    lastIssues.push(...found);
   }
   draft = withDraft ? readDraft() : null;
   resolved = merge(merge(DEFAULTS, published), draft);
@@ -274,11 +361,21 @@ export function get(key) {
 export function setDraft(key, value) {
   const d = readDraft() || {};
   d[key] = clone(value);
-  writeDraft(d);
+  const stored = writeDraft(d);
   draft = d;
   resolved = merge(merge(DEFAULTS, published || {}), draft);
+  if (!stored) {
+    // The in-memory edit still applies for this tab, but warn loudly: it will
+    // not survive a reload.
+    lastIssues = [...lastIssues, 'Browser storage is full or blocked — this edit will be lost on reload. Publish or export now.'];
+  }
   emit();
   return resolved;
+}
+
+/** True when the last draft write could not be persisted. */
+export function lastWriteFailed() {
+  return lastIssues.some((i) => i.startsWith('Browser storage'));
 }
 
 export function hasDraft() {
@@ -306,7 +403,11 @@ export function publishPayload() {
   const keys = ['meta', 'hero', 'sections', 'theme', 'features', 'campaigns',
     'plans', 'testimonials', 'faqs', 'astrologers', 'streakRewards', 'offers'];
   const out = {};
-  for (const k of keys) out[k] = merged[k];
+  for (const k of keys) {
+    // Never emit undefined: JSON.stringify drops the key entirely, which would
+    // publish a content.json missing a section the site expects.
+    out[k] = merged[k] !== undefined ? merged[k] : clone(DEFAULTS[k]);
+  }
   out._updated = new Date().toISOString();
   return out;
 }
@@ -334,9 +435,14 @@ function emit() {
 
 /** Replace the whole draft (used by the import feature). */
 export function importDraft(obj) {
-  const errs = validate(obj);
+  const { value, issues: found } = sanitize(obj, { source: 'import' });
+  if (found.length) throw new Error(found.join('; '));
+  const errs = validate(value);
   if (errs.length) throw new Error(errs.join('; '));
-  writeDraft(obj);
+  if (!writeDraft(value)) {
+    throw new Error('Browser storage is full or blocked — the import could not be saved.');
+  }
+  obj = value;
   draft = obj;
   resolved = merge(merge(DEFAULTS, published || {}), draft);
   emit();

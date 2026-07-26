@@ -205,6 +205,76 @@ ok('hasDraft reports false after discard', !Store.hasDraft());
   Store.discardDraft();
 }
 
+/* ================================================================
+   Robustness: corrupt drafts and malformed content must never blank
+   the panel or the live site.
+   ================================================================ */
+
+section('Robustness — corrupt data');
+{
+  // Wrong type for a collection
+  const bad = Store.sanitize({ features: 'not-a-list', meta: { siteName: 'Ok' } });
+  ok('a wrong-typed collection is dropped', bad.value.features === undefined);
+  ok('the wrong type is reported', bad.issues.some((i) => /features/.test(i)));
+  ok('valid sibling keys survive sanitising', bad.value.meta.siteName === 'Ok');
+
+  // Primitive rows inside a collection
+  const rows = Store.sanitize({ faqs: [{ id: 'a', q: 'Q?' }, 'garbage', 42, null] });
+  ok('malformed rows are stripped', rows.value.faqs.length === 1);
+  ok('stripped rows are reported', rows.issues.some((i) => /faqs/.test(i)));
+
+  // Non-object payloads
+  ok('an array payload is rejected', Store.sanitize([1, 2]).value.features === undefined);
+  ok('a string payload is rejected', Store.sanitize('nope').issues.length === 1);
+  ok('null sanitises to an empty object',
+    Object.keys(Store.sanitize(null).value).length === 0);
+}
+
+section('Robustness — unreadable draft');
+{
+  window.localStorage.setItem('ajg-content-draft', '{ this is not json');
+  const c = await Store.loadContent();
+  ok('a corrupt draft does not throw', !!c && typeof c.meta.siteName === 'string');
+  ok('a corrupt draft is discarded', window.localStorage.getItem('ajg-content-draft') === null);
+  ok('defaults still render after corruption', c.features.length === 9);
+}
+
+section('Robustness — corrupt draft is repaired in place');
+{
+  window.localStorage.setItem('ajg-content-draft',
+    JSON.stringify({ plans: 'broken', faqs: [{ id: 'k', q: 'Kept?' }] }));
+  const c = await Store.loadContent();
+  ok('the bad key falls back to the default', Array.isArray(c.plans) && c.plans.length === 3);
+  ok('the good key from the same draft is kept', c.faqs.length === 1);
+  const repaired = JSON.parse(window.localStorage.getItem('ajg-content-draft') || '{}');
+  ok('the stored draft is rewritten without the bad key', repaired.plans === undefined);
+  ok('issues() reports what happened', Store.issues().some((i) => /plans/.test(i)));
+  Store.discardDraft();
+}
+
+section('Robustness — publish payload is always complete');
+{
+  const p = Store.publishPayload();
+  ok('no managed key is ever undefined',
+    ['meta', 'hero', 'sections', 'theme', 'features', 'campaigns', 'plans',
+     'testimonials', 'faqs', 'astrologers', 'streakRewards', 'offers']
+      .every((k) => p[k] !== undefined));
+  ok('the payload round-trips through JSON without losing keys',
+    Object.keys(JSON.parse(JSON.stringify(p))).length === Object.keys(p).length);
+}
+
+section('Robustness — import rejects bad shapes');
+{
+  let threw = false;
+  try { Store.importDraft({ features: 'nope' }); } catch { threw = true; }
+  ok('importing a wrong-typed collection throws', threw);
+
+  let threw2 = false;
+  try { Store.importDraft('not an object'); } catch { threw2 = true; }
+  ok('importing a non-object throws', threw2);
+  Store.discardDraft();
+}
+
 // blankRow
 for (const kind of ['features', 'campaigns', 'plans', 'testimonials', 'faqs', 'astrologers']) {
   const r = Store.blankRow(kind);

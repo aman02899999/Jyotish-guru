@@ -407,9 +407,9 @@ export async function buildShareCard(chart, name, extras = {}) {
 
   // Background
   const g = c.createLinearGradient(0, 0, W, H);
-  g.addColorStop(0, '#150e28');
-  g.addColorStop(0.55, '#0a0713');
-  g.addColorStop(1, '#1c1233');
+  g.addColorStop(0, '#fbf7f0');
+  g.addColorStop(0.55, '#f4efe6');
+  g.addColorStop(1, '#efe4d6');
   c.fillStyle = g;
   c.fillRect(0, 0, W, H);
 
@@ -417,20 +417,21 @@ export async function buildShareCard(chart, name, extras = {}) {
   for (let i = 0; i < 220; i++) {
     const x = Math.random() * W, y = Math.random() * H;
     const r = Math.random() * 1.6 + 0.3;
-    c.globalAlpha = 0.25 + Math.random() * 0.6;
-    c.fillStyle = Math.random() < 0.8 ? '#cfd6e6' : '#e8c96a';
+    // Faint warm flecks: on paper these must be darker than the ground.
+    c.globalAlpha = 0.06 + Math.random() * 0.14;
+    c.fillStyle = Math.random() < 0.8 ? '#7a1e28' : '#b08d3f';
     c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.fill();
   }
   c.globalAlpha = 1;
 
-  // Gold border
-  c.strokeStyle = 'rgba(212,175,55,0.45)';
+  // Maroon border
+  c.strokeStyle = 'rgba(122,30,40,0.5)';
   c.lineWidth = 2;
   c.strokeRect(28, 28, W - 56, H - 56);
 
   // Zodiac ring on the right
   const cx = W - 210, cy = H / 2, R = 150;
-  c.strokeStyle = 'rgba(212,175,55,0.35)';
+  c.strokeStyle = 'rgba(122,30,40,0.32)';
   c.lineWidth = 1.5;
   c.beginPath(); c.arc(cx, cy, R, 0, Math.PI * 2); c.stroke();
   c.beginPath(); c.arc(cx, cy, R - 34, 0, Math.PI * 2); c.stroke();
@@ -449,7 +450,7 @@ export async function buildShareCard(chart, name, extras = {}) {
     c.beginPath();
     c.arc(cx + Math.cos(a) * r, cy + Math.sin(a) * r, 9, 0, Math.PI * 2);
     c.fill();
-    c.fillStyle = '#14101f';
+    c.fillStyle = '#fdf8f1';
     c.font = '600 11px Inter, sans-serif';
     c.textAlign = 'center'; c.textBaseline = 'middle';
     c.fillText(p.short, cx + Math.cos(a) * r, cy + Math.sin(a) * r + 0.5);
@@ -457,11 +458,11 @@ export async function buildShareCard(chart, name, extras = {}) {
 
   // Text block
   c.textAlign = 'left'; c.textBaseline = 'alphabetic';
-  c.fillStyle = '#d4af37';
+  c.fillStyle = '#7a1e28';
   c.font = '600 20px Inter, sans-serif';
   c.fillText('◆  ADI JYOTISH GURUS', 72, 108);
 
-  c.fillStyle = '#f0ebff';
+  c.fillStyle = '#2b1d1a';
   c.font = '600 58px Georgia, serif';
   c.fillText(truncate(name || 'My Vedic Chart', 20), 72, 190);
 
@@ -474,16 +475,16 @@ export async function buildShareCard(chart, name, extras = {}) {
 
   let y = 260;
   for (const [k, v] of rows) {
-    c.fillStyle = '#7d7699';
+    c.fillStyle = '#78665d';
     c.font = '500 15px Inter, sans-serif';
     c.fillText(k.toUpperCase(), 72, y);
-    c.fillStyle = '#e8d9a8';
+    c.fillStyle = '#7a1e28';
     c.font = '500 30px Georgia, serif';
     c.fillText(truncate(v, 32), 72, y + 36);
     y += 82;
   }
 
-  c.fillStyle = '#7d7699';
+  c.fillStyle = '#78665d';
   c.font = '400 17px Inter, sans-serif';
   c.fillText('Computed from a real sidereal ephemeris', 72, H - 74);
 

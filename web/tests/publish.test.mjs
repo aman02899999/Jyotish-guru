@@ -91,7 +91,8 @@ t('nav built from sections',   $$('.site-nav a').length===2, String($$('.site-na
 t('nav labels overridden',     $('.site-nav a').textContent==='Chart');
 t('hidden section is hidden',  $('#oracle').hidden===true);
 t('visible section shown',     $('#kundli').hidden===false);
-t('theme colour applied',      w.document.documentElement.style.getPropertyValue('--gold')==='#00ff00');
+// The legacy "gold" content key drives the semantic --accent variable.
+t('theme colour applied',      w.document.documentElement.style.getPropertyValue('--accent')==='#00ff00');
 t('meta description applied',  $('meta[name=description]').content==='Published description.');
 
 /* ================================================================

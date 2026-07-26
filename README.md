@@ -19,7 +19,7 @@ web/                      Static website (zero build step)
   index.html              Landing page + application
   manifest.webmanifest    PWA manifest
   assets/
-    css/styles.css        Dark-first cosmic theme with a light variant
+    css/styles.css        Off-white + maroon theme, light-first with a dark variant
     js/
       app.js              Application controller
       charts.js           SVG kundli renderers (North / South / wheel)
@@ -32,6 +32,15 @@ web/                      Static website (zero build step)
         places.js         Gazetteer, geocoding, historical timezones
     vendor/               astronomy-engine, three.js, OrbitControls
     img/                  Icons and social card
+  AUTH.md                 User account / Firebase setup guide
+  firebase-config.example.json   Template for firebase-config.json
+  assets/js/auth/
+    auth.js               Firebase-backed account backend (session, all flows)
+    config.js             Firebase project settings loader
+    profile.js            Per-account charts and preferences, scoped by UID
+    validate.js           Email and password rules (pure, unit tested)
+    errors.js             Firebase error codes → actionable messages
+    ui.js                 Header button, auth dialog, profile view
   admin.html              Admin control panel
   ADMIN.md                Admin panel guide
   assets/js/admin/
@@ -43,7 +52,9 @@ web/                      Static website (zero build step)
   tests/
     engine.test.mjs       175 astronomy assertions
     dom.test.mjs          189 DOM integration assertions
-    admin.test.mjs        189 admin panel assertions
+    admin.test.mjs        208 admin panel assertions
+    auth.test.mjs         125 account assertions (fake Firebase, no network)
+    theme.test.mjs        90 palette + WCAG contrast assertions
     publish.test.mjs      24 publish + XSS regression assertions
     android.test.mjs      44 Kotlin source-consistency checks
 
@@ -133,6 +144,14 @@ latitude and across the date line.
 - Notification centre fed by genuine sky events
 - Transparent pricing, testimonials and FAQ with structured data
 
+**User accounts** (see [AUTH.md](web/AUTH.md))
+- Real, server-verified login via Firebase Authentication — email/password and Google
+- Password strength meter, email verification and password reset
+- Saved charts and preferences namespaced per account, so a shared browser no longer mixes people up
+- Charts saved before signing in are adopted into the account on first login
+- Blocked popups fall back to a redirect, so Google sign-in works on iOS Safari
+- Entirely optional: with no Firebase config every astrology feature still works and the button says so
+
 **Admin panel** (`/admin.html` — see [ADMIN.md](web/ADMIN.md))
 - Passphrase login (PBKDF2-SHA256, 210k iterations) with lockout on repeated failures
 - Full CRUD on features, campaigns, pricing, testimonials, FAQs and astrologers — create, edit, duplicate, reorder, delete
@@ -142,10 +161,46 @@ latitude and across the date line.
 
 **Platform**
 - Works offline once loaded; installable as a PWA
-- Light and dark themes
+- Off-white + maroon theme, light-first, with a matching dark variant
 - Shareable chart links and JSON export
 - Print-optimised report layout
 - Keyboard accessible, labelled inputs, respects `prefers-reduced-motion`
+
+---
+
+## Theme
+
+The palette is **off-white paper with a deep maroon accent** and brass as the
+secondary. It is light-first: with no saved choice, only an OS-level dark
+preference opts into the dark variant.
+
+Colour tokens are **semantic, not named after a hue**, so re-theming never
+leaves a variable called `--gold` holding a maroon:
+
+| Token | Light (default) | Dark | Role |
+| --- | --- | --- | --- |
+| `--bg` | `#f4efe6` | `#17100f` | Page ground — warm off-white, never pure `#fff` |
+| `--surface` | `#fbf7f0` | `#241917` | Cards and panels |
+| `--accent` | `#7a1e28` | `#e08a92` | Maroon: buttons, links, headings |
+| `--accent-2` | `#8a6d2c` | `#d8b46a` | Brass: gradients and ornament |
+| `--text` | `#2b1d1a` | `#f6ece7` | Body ink, warmed so it never reads blue-grey |
+| `--on-accent` | `#fdf8f1` | `#2a1113` | Text sitting on a maroon fill |
+| `--inset` | `#4a2a24` | `#fff4ef` | Sunken wells — darkens paper, lightens dark |
+
+Two deliberate details:
+
+- **The dark variant keeps the maroon identity.** Its grounds are a deep
+  aubergine-brown mixed from the accent rather than a neutral charcoal, and the
+  accent lifts to a brighter rose so it still clears contrast against them.
+- **The planetarium stays dark in both themes** — a WebGL starfield on
+  off-white would be unreadable — so `.planetarium-shell` re-declares the text
+  tokens locally and every HUD control inside inherits light ink automatically.
+
+`npm run test:theme` enforces this: it parses the stylesheet and checks every
+foreground/background pairing against **WCAG AA**, so a colour tweak that makes
+text unreadable fails the build instead of shipping.
+
+Brand colours remain editable from the admin panel's Theme tab.
 
 ---
 
@@ -161,9 +216,27 @@ cryptographic boundary; the real authorisation is a GitHub token that GitHub
 validates server-side, so nobody can change the live site without one.
 [ADMIN.md](web/ADMIN.md) explains the model in full.
 
+## Accounts
+
+Visitors can sign in with Firebase Authentication — a genuine server-verified
+login, in contrast to the admin gate above. Copy
+`web/firebase-config.example.json` to `web/firebase-config.json`, fill in your
+project values and add your domain to Firebase's authorised list.
+
+The Firebase web `apiKey` is a public project identifier rather than a secret,
+so that file is meant to be committed; the real boundary is the authorised
+domain list and security rules, both enforced by Google.
+[AUTH.md](web/AUTH.md) explains it in full.
+
+Without the config file the site behaves exactly as before — accounts simply
+report themselves unavailable.
+
 ## Privacy
 
 The engine runs entirely in your browser. Birth data is never transmitted.
+
+Signing in does not change that: accounts identify and separate users, they do
+not upload charts. Saved charts stay in the browser, namespaced by account.
 
 The only optional network calls are city lookup (Open-Meteo geocoding, keyless)
 and — if *you* supply a Gemini API key — the AI narrative layer, which posts
@@ -177,7 +250,7 @@ The chart mathematics always runs locally, with or without a key.
 ```bash
 npm install          # only jsdom, for the DOM test suites
 npm run dev          # serve web/ at http://localhost:8080
-npm test             # 621 assertions across five suites
+npm test             # 858 assertions across seven suites
 ```
 
 Individual suites:
@@ -185,7 +258,9 @@ Individual suites:
 ```bash
 npm run test:engine    # astronomy correctness
 npm run test:dom       # public site integration in jsdom
-npm run test:admin     # admin auth, CRUD and GitHub client
+npm run test:admin     # admin auth, CRUD, robustness and GitHub client
+npm run test:auth      # user accounts against a fake Firebase
+npm run test:theme     # palette identity and contrast ratios
 npm run test:publish   # end-to-end: published content reaches the page
 npm run test:android   # Kotlin source consistency
 ```

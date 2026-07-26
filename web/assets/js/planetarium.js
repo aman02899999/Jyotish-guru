@@ -156,7 +156,7 @@ export class Planetarium {
       const ring = new THREE.Mesh(
         new THREE.RingGeometry(st.radius * 1.5, st.radius * 1.75, 48),
         new THREE.MeshBasicMaterial({
-          color: 0xd4af37, transparent: true, opacity: 0,
+          color: 0xb0525c, transparent: true, opacity: 0,
           side: THREE.DoubleSide, depthWrite: false,
         })
       );
@@ -237,7 +237,7 @@ export class Planetarium {
     const ring = new THREE.Mesh(
       new THREE.RingGeometry(R - 0.35, R + 0.35, 256),
       new THREE.MeshBasicMaterial({
-        color: 0xd4af37, transparent: true, opacity: 0.24,
+        color: 0xb0525c, transparent: true, opacity: 0.24,
         side: THREE.DoubleSide, depthWrite: false,
       })
     );
@@ -252,12 +252,12 @@ export class Planetarium {
         new THREE.Vector3(Math.cos(a) * (R + 7), 0, -Math.sin(a) * (R + 7)),
       ]);
       this.zodiac.add(new THREE.Line(g, new THREE.LineBasicMaterial({
-        color: 0xd4af37, transparent: true, opacity: 0.3,
+        color: 0xb0525c, transparent: true, opacity: 0.3,
       })));
 
       // Sign label sprite
       const mid = ((i * 30) + 15) * Math.PI / 180;
-      const sp = this._makeLabel(`${SIGNS[i].symbol} ${SIGNS[i].sa}`, '#e8d9a8', 34);
+      const sp = this._makeLabel(`${SIGNS[i].symbol} ${SIGNS[i].sa}`, '#e6b9be', 34);
       sp.position.set(Math.cos(mid) * (R + 16), 1.5, -Math.sin(mid) * (R + 16));
       sp.scale.multiplyScalar(1.35);
       this.zodiac.add(sp);
