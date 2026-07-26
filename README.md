@@ -47,11 +47,13 @@ web/                      Static website (zero build step)
     publish.test.mjs      24 publish + XSS regression assertions
     android.test.mjs      44 Kotlin source-consistency checks
 
-web/src, web/prisma      Legacy Next.js + Prisma + NextAuth app (see web/README.md)
-                          Kept for reference and for its API/Razorpay work; it is
-                          NOT what production serves — vercel.json publishes the
-                          static site above. Build it separately with
-                          `npm --prefix web install && npm --prefix web run dev`.
+server/                   Optional full-stack backend — the legacy Next.js + Prisma +
+                          NextAuth app (see [server/README.md](server/README.md)).
+                          Kept for reference and for its API / Razorpay / wallet work;
+                          it is NOT what production serves — vercel.json and the GitHub
+                          Pages workflow publish the zero-build static site in web/
+                          above. Run it on its own with
+                          `npm --prefix server install && npm --prefix server run dev`.
 
 app/                      Android application (Kotlin + Jetpack Compose)
 deploy/                   GitHub Pages workflow + hosting notes
@@ -225,6 +227,28 @@ marketing campaigns and a daily streak ladder that mirrors the website.
 
 `GEMINI_API_KEY` is injected from `.env` by the Secrets Gradle plugin — see
 `.env.example`.
+
+---
+
+## Optional backend (`server/`)
+
+This repository also ships a self-contained full-stack backend in
+[`server/`](server/) — the legacy **Next.js 16 + React 19 + Prisma + NextAuth**
+app with real Razorpay payments, wallet ledger, sessions/reviews and a Gemini
+report API. It is **reference / optional**: production serves the zero-build
+static site in [`web/`](web/), not this app. The two deliberately do not share
+a build or a `package.json` — the static site has no build step and this app is
+run on its own:
+
+```bash
+npm --prefix server install
+cp server/.env.example server/.env   # fill in DATABASE_URL, AUTH_SECRET, keys…
+npm --prefix server run dev          # http://localhost:3000
+```
+
+See [`server/README.md`](server/README.md) for the database, auth, Gemini and
+Razorpay setup. Its unit tests live next to the code (`server/src/**/*.test.ts`)
+and run with `npm --prefix server test`.
 
 ---
 
