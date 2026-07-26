@@ -61,7 +61,7 @@ Because there is no build step, point any of these at the `web/` directory:
 | Host | Setting |
 | --- | --- |
 | Netlify | Publish directory `web`, build command empty |
-| Vercel | Framework preset **Other**, output directory `web` |
+| Vercel | Already configured by `vercel.json` at the repo root — no build, serves `web/` |
 | Cloudflare Pages | Build output directory `web`, build command empty |
 | S3 / nginx / Apache | Copy the contents of `web/` to the document root |
 
