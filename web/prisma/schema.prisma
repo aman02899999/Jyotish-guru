@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DATABASE_URL_DIRECT")
+}
+
+model User {
+  id                  String    @id @default(cuid())
+  name                String
+  email               String    @unique
+  // Null for accounts created via Firebase Google Sign-In, which have no local password.
+  passwordHash        String?
+  firebaseUid         String?   @unique
+  preferredLanguage   String    @default("Hinglish")
+  subscriptionTier    String    @default("Free")
+  subscriptionExpiry  DateTime?
+  walletBalance       Int       @default(0)
+  referralClaimed     Boolean   @default(false)
+  lastActiveDate      String?
+  currentStreak       Int       @default(0)
+  longestStreak       Int       @default(0)
+  createdAt           DateTime  @default(now())
+
+  sessions ReportSession[]
+  paymentOrders PaymentOrder[]
+  walletTransactions WalletTransaction[]
+  favoriteAstrologers FavoriteAstrologer[]
+}
+
+// Astrologers themselves are a static roster (lib/astrologers.ts), not a DB
+// table, so this only stores the (userId, astrologerId) bookmark pair.
+model FavoriteAstrologer {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  astrologerId Int
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, astrologerId])
+  @@index([userId])
+}
+
+// One row per change to a user's walletBalance, so the running total is
+// always reconstructable from history instead of being an opaque integer.
+// amount is signed (positive = credit, negative = debit); balanceAfter is
+// the resulting walletBalance, captured at write time for a stable audit
+// trail even if later transactions change the current balance.
+model WalletTransaction {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type          String   // "credit_purchase" | "referral_bonus" | "report_payment"
+  amount        Int
+  balanceAfter  Int
+  description   String
+
+  createdAt     DateTime @default(now())
+
+  @@index([userId])
+}
+
+// One row per Razorpay order we create. purposeType/purposeRef record what
+// the payment is *for*, resolved and stored server-side at order-creation
+// time - verify never re-trusts client-supplied purpose/amount, only the
+// order id, so a tampered client request can't grant something it didn't
+// pay for.
+model PaymentOrder {
+  id                 String    @id @default(cuid())
+  userId             String
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  razorpayOrderId    String    @unique
+  razorpayPaymentId  String?
+
+  purposeType        String    // "subscription" | "credits" | "report"
+  purposeRef         String    // tierId | packId | sessionId
+
+  amount             Int       // rupees (Razorpay order itself is in paise)
+  status             String    @default("created") // created | paid | failed
+
+  createdAt          DateTime  @default(now())
+  paidAt             DateTime?
+
+  @@index([userId])
+}
+
+model ReportSession {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  userName       String
+  gender         String
+  dob            String
+  tob            String
+  pob            String
+  question       String
+
+  partnerName    String?
+  partnerDob     String?
+  partnerTob     String?
+  partnerPob     String?
+
+  astrologerId   Int
+  astrologerName String
+  specialty      String
+  price          Int
+
+  reportText     String?
+  isPaid         Boolean  @default(false)
+  rating         Int?
+  // Optional written feedback alongside the star rating. Only ever
+  // populated by the account holder who actually paid for and completed
+  // this session - see lib/reviews.ts for how these surface publicly.
+  reviewText     String?
+
+  followUpQuestion String?
+  followUpResponse String?
+
+  createdAt      DateTime @default(now())
+
+  @@index([userId])
+}

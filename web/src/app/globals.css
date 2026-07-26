@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+:root {
+  --color-cream: #fbf1e1;
+  --color-paper: #fffcf5;
+  --color-sand: #f0dfc0;
+  --color-saffron: #ea580c;
+  --color-terracotta: #9a3412;
+  --color-rust: #b45309;
+  --color-clay: #8a6f5c;
+  --color-ink: #2a1b12;
+
+  --background: var(--color-cream);
+  --foreground: var(--color-ink);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-cream: var(--color-cream);
+  --color-paper: var(--color-paper);
+  --color-sand: var(--color-sand);
+  --color-saffron: var(--color-saffron);
+  --color-terracotta: var(--color-terracotta);
+  --color-rust: var(--color-rust);
+  --color-clay: var(--color-clay);
+  --color-ink: var(--color-ink);
+
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-display);
+
+  --animate-marquee: marquee 32s linear infinite;
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee {
+    animation: none;
+  }
+}
+
+body {
+  background:
+    radial-gradient(ellipse 900px 500px at 15% -10%, color-mix(in srgb, var(--color-saffron) 10%, transparent), transparent 60%),
+    radial-gradient(ellipse 900px 600px at 85% 0%, color-mix(in srgb, var(--color-rust) 10%, transparent), transparent 60%),
+    radial-gradient(circle at 50% 15%, var(--color-sand) 0%, var(--color-cream) 65%);
+  background-attachment: fixed;
+  color: var(--foreground);
+  min-height: 100vh;
+  position: relative;
+}
+
+/* Fine grain texture for a tactile, less "flat CSS gradient" surface. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+body > * {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: var(--color-saffron);
+  color: var(--color-paper);
+}
+
+/* Slim, saffron-tinted scrollbar to match the theme instead of the OS default. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-saffron) 40%, transparent) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-saffron) 35%, transparent);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--color-saffron) 55%, transparent);
+  background-clip: padding-box;
+}
+
+@media print {
+  nav,
+  footer,
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  body::before {
+    display: none !important;
+  }
+}

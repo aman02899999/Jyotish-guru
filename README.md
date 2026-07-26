@@ -47,6 +47,12 @@ web/                      Static website (zero build step)
     publish.test.mjs      24 publish + XSS regression assertions
     android.test.mjs      44 Kotlin source-consistency checks
 
+web/src, web/prisma      Legacy Next.js + Prisma + NextAuth app (see web/README.md)
+                          Kept for reference and for its API/Razorpay work; it is
+                          NOT what production serves — vercel.json publishes the
+                          static site above. Build it separately with
+                          `npm --prefix web install && npm --prefix web run dev`.
+
 app/                      Android application (Kotlin + Jetpack Compose)
 deploy/                   GitHub Pages workflow + hosting notes
 ```
