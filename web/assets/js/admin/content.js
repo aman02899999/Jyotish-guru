@@ -61,12 +61,15 @@ export const DEFAULTS = {
     { id: 'faq', nav: 'FAQ', visible: true, inNav: false },
   ],
 
+  /* Off-white paper + maroon. Keys are the historical names kept for
+     backwards compatibility with any published content.json; the values and
+     the CSS variables they drive are the current palette. */
   theme: {
-    gold: '#d4af37',
-    plum: '#7b5ea7',
-    void: '#07050f',
-    panel: '#120d21',
-    text: '#f0ebff',
+    gold: '#7a1e28',   // primary accent (maroon)
+    plum: '#8a6d2c',   // secondary accent (brass)
+    void: '#f4efe6',   // page background (off-white)
+    panel: '#fbf7f0',  // card surfaces
+    text: '#2b1d1a',   // body text
   },
 
   features: [

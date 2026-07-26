@@ -686,11 +686,13 @@ function renderSections() {
    Theme
    ================================================================ */
 
+/* The keys are legacy (a published content.json may still use them); the
+   labels describe what they actually control in the maroon palette. */
 const THEME_FIELDS = [
-  ['gold', 'Accent / gold', 'Buttons, highlights and headings'],
-  ['plum', 'Secondary / plum', 'Gradients and secondary accents'],
-  ['void', 'Background', 'Page background'],
-  ['panel', 'Panel', 'Card and panel surfaces'],
+  ['gold', 'Primary accent — maroon', 'Buttons, links, highlights and headings'],
+  ['plum', 'Secondary accent — brass', 'Gradients and secondary ornament'],
+  ['void', 'Background — off-white', 'Page background'],
+  ['panel', 'Surface', 'Card and panel surfaces'],
   ['text', 'Text', 'Primary body text'],
 ];
 

@@ -286,12 +286,25 @@ ok('Sade Sati question answered', /Sade Sati/.test($('#oracleLog').textContent))
 /* ---------------- interactions ---------------- */
 
 section('UI interactions');
+// The off-white/maroon palette is light-first, so with no saved preference
+// and no OS dark preference the site starts light.
+ok('defaults to the light (off-white) theme',
+  window.document.documentElement.dataset.theme === 'light');
+
+const startTheme = window.document.documentElement.dataset.theme;
+const otherTheme = startTheme === 'light' ? 'dark' : 'light';
+
 $('#themeToggle').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 await tick(20);
-ok('theme toggles to light', window.document.documentElement.dataset.theme === 'light');
+ok('theme toggles to the other variant',
+  window.document.documentElement.dataset.theme === otherTheme);
+ok('the choice is persisted', window.localStorage.getItem('ajg-theme') === otherTheme);
+
 $('#themeToggle').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 await tick(20);
-ok('theme toggles back to dark', window.document.documentElement.dataset.theme === 'dark');
+ok('theme toggles back', window.document.documentElement.dataset.theme === startTheme);
+ok('the browser chrome colour follows the theme',
+  window.document.querySelector('meta[name="theme-color"]').getAttribute('content') === '#f4efe6');
 
 $('#navToggle').dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 await tick(20);
