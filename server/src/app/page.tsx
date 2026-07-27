@@ -8,6 +8,7 @@ import { FadeIn } from "@/components/fade-in";
 import { NavagrahaHero } from "@/components/navagraha-scene";
 import { Marquee } from "@/components/marquee";
 import { TiltCard } from "@/components/tilt-card";
+import { PlanetariumSection } from "@/components/planetarium-section";
 import { TestimonialsSection } from "@/components/testimonials-section";
 import { getFeaturedReviews } from "@/lib/reviews";
 
@@ -142,6 +143,8 @@ export default async function LandingPage() {
           ))}
         </div>
       </section>
+
+      <PlanetariumSection />
 
       <TestimonialsSection reviews={reviews} />
 
