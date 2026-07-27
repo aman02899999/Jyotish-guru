@@ -152,8 +152,7 @@ function subscribeToViewportChanges(callback: () => void) {
 
 function getCanRender3DSnapshot(): boolean {
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const isNarrow = window.innerWidth < 640;
-  return !prefersReducedMotion && !isNarrow;
+  return !prefersReducedMotion;
 }
 
 function getServerSnapshot(): boolean {
